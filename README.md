@@ -20,11 +20,13 @@ link-reaper collect [file(s)] [options]
            
 // Applies all changes from the 'collect' command
 link-reaper reap [options]
-  default:                         Applies all changes from 'collect' command to the checked file(s) by overwriting them
-  -show-afterlife                  Creates an afterlife-filename.md for each checked file that contains the zombie links
+  default:                         Applies all changes from 'collect' command to the checked file(s) 
+                                   by overwriting them
+  -show-afterlife                  Creates an afterlife-filename.md for each checked file that only contains 
+                                   the zombie links
   override default:
-  -merciful                        Creates a purgatory-filename.md for each checked file that contains applied changes,
-                                   if you want to manually compare to the original file(s)
+  -merciful                        Creates a purgatory-filename.md for each checked file that contains 
+                                   applied changes, if you want to manually compare to the original file(s)
 ```
 
 ## Examples
