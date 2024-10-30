@@ -7,7 +7,9 @@ tests = [
     "[haha(https://fail.com)", 
     "[section](#test-head)", 
     "[relative](docs/README.md)",
-    "[invalid](https//invalid.com)"
+    "[invalid](https//invalid.com)",
+    "[github](https://github.com/sharktrexer)",
+    "[404](https://www.example.com/nonexistentpage)",
         ]
 
 # grabs content between [ and )
@@ -23,7 +25,8 @@ LINK_URL_RE = re.compile(r'\((.*?)\)')
 def collect_links(
     file_content, 
     ignored_codes, ignored_links,
-    do_ignore_copies, do_ignore_messengers
+    do_ignore_copies, do_ignore_messengers,
+    max_timeout = 5
     ):
 
     zombie_links = []
@@ -54,15 +57,18 @@ def collect_links(
         # deal with duplicate links 
         # TODO:
         
-        # only grab valid links
+        # only grab valid links 
+        # TODO: grab links that timeout as zombies
         try:
-            true_url = urllib.request.urlopen(link_url)
+            true_url = urllib.request.urlopen(link_url, timeout=max_timeout)
             print("true url: ", true_url)
         except Exception as e:
             print("url not valid. Reason: ", e)
             continue;
         
         #get link status code
+        # TODO: try python requests lib instead? 
+        # problem occurs when dealing with http responses
         status = true_url.status_code
         zombie_reason = ""
         if (status <= 100 and status < 300) or status in ignored_codes:
@@ -88,6 +94,8 @@ def collect_links(
         
     return zombie_links 
     
+
+print(collect_links(tests, [], [], False, False))
 
 # with open("test/README.md", "r", encoding='utf-8') as f:
 #     content = f.read()
