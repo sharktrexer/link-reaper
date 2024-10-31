@@ -10,23 +10,22 @@ TBD
 
 ## Terminal
 ```
-// Checks all links and tracks what links should be modified/deleted
-link-reaper collect [file(s)] [options]
+// Checks all markdown links in files and deletes zombies, replaces ghosts, 
+   and applies those changes to the files.
+link-reaper reap [file(s)] [options]
   -f, -files                       Name of files to check, separated by commas
   -i, -ignore [codes]              Status codes to ignore, separated by commas
-      -ignore-copy                 Ignore duplicate links
-      -ignore-messenger            Ignore redirect links
+      -ignore-copy                 Ignore duplicate links, otherwise subsequent dupes are removed
+      -ignore-ghosts               Ignore redirect links, otherwise are replaced by the appropriate
+                                   new url
       -ignore-specific [urls]      Ignore links that match inputted link, separated by commas
-           
-// Applies all changes from the 'collect' command
-link-reaper reap [options]
-  default:                         Applies all changes from 'collect' command to the checked file(s) 
-                                   by overwriting them
-  -show-afterlife                  Creates an afterlife-filename.md for each checked file that only contains 
-                                   the zombie links
-  override default:
-  -merciful                        Creates a purgatory-filename.md for each checked file that contains 
-                                   applied changes, if you want to manually compare to the original file(s)
+  -s, -show-afterlife              Creates an afterlife-filename.md for each checked file that only contains 
+                                   the reaped links
+  -m, -merciful                    Creates a purgatory-filename.md for each checked file that contains 
+                                   applied changes, if you want to manually compare to the original file(s).
+                                   Otherwise, changes are applied directly to the files.
+  -g, -guide [list_file]           Instead of checking every link in the provided file, only the markdown 
+                                   links provided in the list_file are reviewed for reaping. Above options will still apply. The purgatory-filename from 'merciful' could be used as a guide for example. If multiple guides are provided, they must be comma separated, and will correspond to only one of the inputted -f files.
 ```
 
 ## Examples

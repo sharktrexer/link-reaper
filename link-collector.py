@@ -32,7 +32,7 @@ def collect_links(
     max_timeout = 1
     ):
 
-    zombie_links = []
+    undead_links = []
     file_line = -1
     zombie_reason = None
     print("\n")
@@ -99,10 +99,10 @@ def collect_links(
             zombie_reason
             )
         print(link_info, "\n")
-        zombie_links.append(link_info)
+        undead_links.append(link_info)
         
         
-    return zombie_links 
+    return undead_links 
     
 
 collect_links(tests)
