@@ -5,16 +5,6 @@ from urllib.error import URLError
 
 from link import Link
 
-tests = [
-    "[test](https://test.com)", 
-    "[haha(https://fail.com)", 
-    "[section](#test-head)", 
-    "[relative](docs/README.md)",
-    "[invalid](https://invalid.com)",
-    "[github](https://github.com/sharktrexer)",
-    "[404](https://www.example.com/nonexistentpage)",
-        ]
-
 # grabs content between [ and )
 # obtaining: [name](https://test.com)
 LINK_RE = re.compile(r'\[(.*?)\)') 
@@ -26,7 +16,7 @@ LINK_URL_RE = re.compile(r'\((.*?)\)')
 # grab github readme links as a list of tuple strings 
 # (line_num, name, url, status_code, reason)
 def collect_links(
-    files, 
+    files, directory = None,
     ignored_codes = [], ignored_links = [], guides = [],
     do_ignore_copies = False, do_ignore_ghosts = False, do_show_afterlife = False, overwrite = True,
     max_timeout = 1
@@ -35,10 +25,10 @@ def collect_links(
     # Loop thru all inputted files, and create a reaped copy
     for file in files:
         
-        #temporary test directory mention
-        reap_file_path = 'test/' + "reaped-" + file
-        afterlife_file_path = 'test/' + "afterlife-" + file
-        file = 'test/' + file
+        #file paths
+        reap_file_path = directory + "reaped-" + file
+        afterlife_file_path = directory + "afterlife-" + file
+        file = directory + file
         
         with (open(file, "r", encoding='utf-8') as cur_file, 
               open(reap_file_path, "w", encoding='utf-8') as reap_file):
@@ -143,7 +133,4 @@ def collect_links(
             os.replace(reap_file_path, file)
         
     return undead_links 
-    
-
-collect_links(['smoltest.md'], [], [], [], False, False, True, True, 1)
 
