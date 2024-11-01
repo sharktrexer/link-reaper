@@ -1,6 +1,6 @@
 # checks links in markdown files and prints results
 # results are temp stored so the user can decide to implement them or not
-import re, urllib.request
+import re, urllib.request, os
 from urllib.error import URLError
 
 from link import Link
@@ -28,17 +28,20 @@ LINK_URL_RE = re.compile(r'\((.*?)\)')
 def collect_links(
     files, 
     ignored_codes = [], ignored_links = [], guides = [],
-    do_ignore_copies = False, do_ignore_ghosts = False, do_show_afterlife = False, dont_overwrite = False,
+    do_ignore_copies = False, do_ignore_ghosts = False, do_show_afterlife = False, overwrite = True,
     max_timeout = 1
     ):
 
-    with open("test/README.md", "r", encoding='utf-8') as f:
-        content = f.read()
-
-    print(content)
-
+    # Loop thru all inputted files, and create a reaped copy
     for file in files:
-        with open(file, "r", encoding='utf-8') as cur_file:
+        
+        #temporary test directory mention
+        reap_file_path = 'test/' + "reaped-" + file
+        afterlife_file_path = 'test/' + "afterlife-" + file
+        file = 'test/' + file
+        
+        with (open(file, "r", encoding='utf-8') as cur_file, 
+              open(reap_file_path, "w", encoding='utf-8') as reap_file):
             
             undead_links = []
             file_line = -1
@@ -50,8 +53,14 @@ def collect_links(
                 # line count
                 file_line += 1
                 
-                # line info
-                link_line = LINK_RE.search(line).group()
+                # Trying to search for a markdown link
+                link_line = LINK_RE.search(line)
+                if not link_line:
+                    reap_file.write(line)
+                    continue
+                
+                # Found a markdown link
+                link_line = link_line.group()
                 print("Checking ", link_line)
                 
                 link_name = LINK_NAME_RE.search(link_line)
@@ -59,6 +68,7 @@ def collect_links(
                 
                 # only grab regex matches, otherwise ignore
                 if(link_name == None or link_url == None):
+                    reap_file.write(line)
                     continue;
                 
                 # grab text between parentheses
@@ -67,6 +77,7 @@ def collect_links(
                 
                 # ignore specified links
                 if link_url in ignored_links:
+                    reap_file.write(line)
                     continue
                 
                 # deal with duplicate links 
@@ -85,6 +96,7 @@ def collect_links(
                     #print("true url: ", true_url)
                 except ValueError as e:
                     print("All Good. Reason: ", e)
+                    reap_file.write(line)
                     continue
                 except Exception as e:
                     zombie_reason = e
@@ -92,11 +104,15 @@ def collect_links(
                 #get link status code
                 # TODO: try python requests lib instead? 
                 # problem occurs when dealing with http responses
-                status = 400 #true_url.status_code
-                
+                try:
+                    status = true_url.status_code
+                except Exception as e:
+                    status = 400
+                    
                 if not zombie_reason:
                     if (status <= 100 and status < 300) or status in ignored_codes:
                         print("URL is Valid")
+                        reap_file.write(line)
                         continue
                     elif status <= 300 and status < 400: #TODO: take into account do_ignore_messengers
                         zombie_reason = "Redirect"
@@ -116,9 +132,18 @@ def collect_links(
                 print(link_info, "\n")
                 undead_links.append(link_info)
         
+        #Write undead_links to afterlife-filename.md
+        if do_show_afterlife:   
+            with open(afterlife_file_path, 'w', encoding='utf-8') as afterlife_file:
+                for link in undead_links:
+                    afterlife_file.write(link.__str__() + "\n")
+            
+        #Replace 
+        if overwrite: 
+            os.replace(reap_file_path, file)
         
     return undead_links 
     
 
-collect_links(['test/smoltest.md'])
+collect_links(['smoltest.md'], [], [], [], False, False, True, True, 1)
 

@@ -26,7 +26,7 @@ link-reaper [file(s)] [options]
 
   -p, patience [seconds]           Max # of seconds reaper waits for url to respond before reaping
   
-  -m, -merciful                    Creates a purgatory-filename.md for each checked file that contains
+  -m, -merciful                    Creates a reaped-filename.md for each checked file that contains
                                    applied changes, if you want to manually compare to the original
                                    file(s). Otherwise, changes are applied directly to the files.
 
