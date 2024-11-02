@@ -4,7 +4,9 @@ class Link:
             link_name, 
             link_url,
             status,
-            zombie_reason):
+            zombie_reason,
+            alternate_url = None
+            ):
 
         self.file_line = file_line
         self.link_name = link_name

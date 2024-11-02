@@ -1,9 +1,12 @@
 # checks links in markdown files and prints results
 # results are temp stored so the user can decide to implement them or not
-import re, urllib.request, os
+import re, urllib.parse, os, requests
 from urllib.error import URLError
 
 from link import Link
+''' TODO: add ability to accept automatic links inbetween <>
+    perhaps enable ability to just check any links in entire file, not just markdown
+'''
 
 # grabs content between [ and )
 # obtaining: [name](https://test.com)
@@ -16,8 +19,8 @@ LINK_URL_RE = re.compile(r'\((.*?)\)')
 # grab github readme links as a list of tuple strings 
 # (line_num, name, url, status_code, reason)
 def collect_links(
-    files, directory = None,
-    ignored_codes = [], ignored_links = [], guides = [],
+    files, directory: str = "",
+    ignored_codes: list = [], ignored_links: list = [], guides: list = [],
     do_ignore_copies = False, do_ignore_ghosts = False, do_show_afterlife = False, overwrite = True,
     max_timeout = 1
     ):
@@ -65,6 +68,12 @@ def collect_links(
                 link_name = link_name.group()[1:-1]
                 link_url = link_url.group()[1:-1]
                 
+                #validate that the captured "link" is actually a link
+                if not link_url.startswith("http"):
+                    reap_file.write(line)
+                    print("Not a link: ", link_url)
+                    continue
+                
                 # ignore specified links
                 if link_url in ignored_links:
                     reap_file.write(line)
@@ -82,34 +91,45 @@ def collect_links(
                 # only grab valid links 
                 # TODO: grab links that timeout as zombies
                 try:
-                    true_url = urllib.request.urlopen(link_url, timeout=max_timeout)
-                    #print("true url: ", true_url)
-                except ValueError as e:
-                    print("All Good. Reason: ", e)
-                    reap_file.write(line)
-                    continue
+                    req = requests.head(link_url, timeout=max_timeout)
+                    print(req.status_code)
+                    print(req.history)
                 except Exception as e:
-                    zombie_reason = e
+                    print("Error: ", e)
+                
+                # try:
+                #     true_url = urllib.request.urlopen(link_url, timeout=max_timeout)
+                #     #print("true url: ", true_url)
+                # except ValueError as e:
+                #     print("All Good. Reason: ", e)
+                #     reap_file.write(line)
+                #     continue
+                # except Exception as e:
+                #     zombie_reason = e
                 
                 #get link status code
                 # TODO: try python requests lib instead? 
                 # problem occurs when dealing with http responses
                 try:
-                    status = true_url.status_code
+                    status = 0#true_url.status_code
                 except Exception as e:
-                    status = 400
+                    status = 0
                     
-                if not zombie_reason:
-                    if (status <= 100 and status < 300) or status in ignored_codes:
-                        print("URL is Valid")
-                        reap_file.write(line)
-                        continue
-                    elif status <= 300 and status < 400: #TODO: take into account do_ignore_messengers
-                        zombie_reason = "Redirect"
-                    elif status <= 400 and status < 500:
-                        zombie_reason = "Client Error"
-                    elif status <= 500 and status < 600:
-                        zombie_reason = "Server Error"
+                url_after_redirect = None
+                    
+                
+                if (status <= 100 and status < 300) or status in ignored_codes:
+                    print("URL is Valid")
+                    reap_file.write(line)
+                    continue
+                elif status <= 300 and status < 400: 
+                    #TODO: take into account do_ignore_ghosts
+                    #      store updated, live url
+                    zombie_reason = "Redirect"
+                elif status <= 400 and status < 500:
+                    zombie_reason = "Client Error"
+                elif status <= 500 and status < 600:
+                    zombie_reason = "Server Error"
                 
                 # (file line num, name, url, status, reason)
                 link_info = Link(
@@ -117,18 +137,19 @@ def collect_links(
                     link_name, 
                     link_url,
                     status,
-                    zombie_reason
+                    zombie_reason,
+                    url_after_redirect
                     )
                 print(link_info, "\n")
                 undead_links.append(link_info)
         
-        #Write undead_links to afterlife-filename.md
+        # Write undead_links to afterlife-filename.md
         if do_show_afterlife:   
             with open(afterlife_file_path, 'w', encoding='utf-8') as afterlife_file:
                 for link in undead_links:
                     afterlife_file.write(link.__str__() + "\n")
             
-        #Replace 
+        # Replace 
         if overwrite: 
             os.replace(reap_file_path, file)
         
