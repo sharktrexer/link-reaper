@@ -5,7 +5,6 @@ class Link:
             link_url,
             status,
             zombie_reason,
-            alternate_url = None
             ):
 
         self.file_line = file_line
