@@ -1,6 +1,6 @@
 # checks links in markdown files and prints results
 # results are temp stored so the user can decide to implement them or not
-import re, os, requests
+import re, os, requests, urllib.parse
 
 from link import Link
 ''' TODO: add ability to accept automatic links inbetween <>
@@ -36,6 +36,7 @@ def collect_links(
               open(reap_file_path, "w", encoding='utf-8') as reap_file):
             
             undead_links = []
+            file_urls = []
             file_line = -1
             print("\n")
             
@@ -69,10 +70,16 @@ def collect_links(
                 raw_url = link_url.group()[1:-1]
                 
                 #validate that the captured "link" is actually a link
-                if not raw_url.startswith("https://"):
+                try:
+                    parsed_url = urllib.parse.urlparse(raw_url)
+                    if not parsed_url.scheme:
+                        reap_file.write(line)
+                        continue
+                except ValueError:
                     reap_file.write(line)
-                    print("Not a link: ", raw_url)
                     continue
+                
+                file_urls.append(raw_url)
                 
                 # ignore specified links
                 if raw_url in ignored_links:
@@ -81,7 +88,7 @@ def collect_links(
                 
                 # deal with duplicate links 
                 if not do_ignore_copies:
-                    for grabbed_link in undead_links:
+                    for grabbed_link in file_urls:
                         if raw_url == grabbed_link.link_url:
                             zombie_reason = ("Duplicate Link of " + 
                                             grabbed_link.link_name + ", Line " +
@@ -92,9 +99,13 @@ def collect_links(
                 # TODO: grab links that timeout as zombies
                 req = None
                 try:
-                    req = requests.head(raw_url, timeout=max_timeout)
+                    req = requests.head(raw_url, 
+                                        timeout=max_timeout, 
+                                        headers={'User-Agent': 'link-reaper'}
+                                        )
                 except Exception as e:
-                    print("Error: ", e)
+                    print("Error Resolving Url: ", e)
+                    reap_file.write(line)
                     continue
                 
                 #get link info
@@ -118,10 +129,14 @@ def collect_links(
                     else:
                         reap_file.write(line)
                         continue
+                elif status == 404:
+                    zombie_reason += " Connection couldn't be established"
                 elif status >= 400 and status < 500:
-                    zombie_reason += " Client Error"
+                    zombie_reason += " Unauthorized, may need to check manually"
+                    reap_file.write(line)
                 elif status >= 500 and status < 600:
-                    zombie_reason += " Server Error"
+                    zombie_reason += " Server Error, may need to check manually"
+                    reap_file.write(line)
                 
                 # (file line num, name, url, status, reason)
                 link_info = Link(
