@@ -21,7 +21,7 @@ def collect_links(
     files, directory: str = "",
     ignored_codes: list = [], ignored_links: list = [], guides: list = [],
     do_ignore_copies = False, do_ignore_ghosts = False, do_show_afterlife = False, overwrite = True,
-    max_timeout = 1
+    do_reap_timeouts = False, max_timeout = 1
     ):
 
     # Loop thru all inputted files, and create a reaped copy
@@ -79,24 +79,31 @@ def collect_links(
                     reap_file.write(line)
                     continue
                 
-                file_urls.append(raw_url)
-                
                 # ignore specified links
                 if raw_url in ignored_links:
                     reap_file.write(line)
                     continue
                 
-                # deal with duplicate links 
+                # deal with duplicate links
+                is_dupe = False  
                 if not do_ignore_copies:
                     for grabbed_link in file_urls:
                         if raw_url == grabbed_link.link_url:
                             zombie_reason = ("Duplicate Link of " + 
                                             grabbed_link.link_name + ", Line " +
                                             str(grabbed_link.file_line))
+                            is_dupe = True
                             break       
                 
-                # only grab valid links 
-                # TODO: grab links that timeout as zombies
+                file_urls.append(Link(file_line, link_name, raw_url, 200, ""))
+                
+                # Handle copies
+                if is_dupe:
+                    undead_links.append(Link(file_line, link_name, raw_url, 200, zombie_reason))
+                    continue
+                
+                # only grab links that respond with 404 or 300s
+                # TODO: grab links that timeout as zombies, perhaps a new option for that?
                 req = None
                 try:
                     req = requests.head(raw_url, 
@@ -111,7 +118,7 @@ def collect_links(
                 #get link info
                 status = req.status_code
                 url_after_redirect = ""
-                if 'location' in req.headers:
+                if not do_ignore_ghosts and 'location' in req.headers:
                     print("New url: ", req.headers['location'])
                     url_after_redirect = req.headers['location'] 
                     

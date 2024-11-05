@@ -1,8 +1,9 @@
-# venv
+# vscode
 .venv
+.vscode
 
 # python
 __pycache__
 
-# testing folde
+# testing folder
 test
