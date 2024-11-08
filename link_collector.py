@@ -30,6 +30,7 @@ def collect_links(
         #file paths
         reap_file_path = directory + "reaped-" + file
         afterlife_file_path = directory + "afterlife-" + file
+        log_file_path = directory + "log-" + file
         file = directory + file
         
         file_urls = []
@@ -104,19 +105,23 @@ def collect_links(
                 
                 # Handle copies
                 if is_dupe:
-                    undead_links.append(dupe_link)
-                    continue
-                # Log copies just so user knows what has been ignored
-                if do_ignore_copies:
-                    file_log.append(dupe_link)
+                    if do_ignore_copies:
+                        # Log copies just so user knows what has been ignored
+                        file_log.append(dupe_link)
+                    else:
+                        # otherwise dupes are known as undead
+                        undead_links.append(dupe_link)
+                        continue
                 
                 # only grab links that respond with 404 or 300s
                 # TODO: grab links that timeout as zombies, perhaps a new option for that?
                 req = None
+                status = -1
                 try:
                     req = requests.head(raw_url, 
                                         timeout=max_timeout, 
-                                        headers={'User-Agent': 'link-reaper'}
+                                        headers={'User-Agent': 'link-reaper'},
+                                        verify=False
                                         )
                 except Exception as e:
                     reap_file.write(line)
@@ -155,7 +160,7 @@ def collect_links(
                 
                 if (status >= 100 and status < 300) or status in ignored_codes:
                     reap_file.write(line)
-                    file_log.append(link_info)
+                    #file_log.append(link_info)
                     continue
                 elif status == 404:
                     note = "Responded 404"
@@ -177,6 +182,11 @@ def collect_links(
             with open(afterlife_file_path, 'w', encoding='utf-8') as afterlife_file:
                 for link in undead_links:
                     afterlife_file.write(link.__str__() + "\n")
+                    
+        # Write log to log-filename.md
+        with open(log_file_path, 'w', encoding='utf-8') as log_file:
+            for link in file_log:
+                log_file.write(link.__str__() + "\n")
             
         # Replace 
         if overwrite: 
@@ -191,6 +201,8 @@ def collect_links(
         print("\nProblematic links in: ", file, '\nAssume they are reaped unless specified\n')
         for url in undead_links:
             print(url)
+            
+        print("Other link results in ", log_file_path, " for additional info")
         
     return undead_links 
 

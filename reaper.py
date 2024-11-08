@@ -35,7 +35,7 @@ def link_reaper():
 @click.option('-s', '--show_afterlife', is_flag=True)
 @click.option('-m', '--merciful', is_flag=True)
 @click.option('-ig', '--ignore-ghosts', is_flag=True)
-@click.option('-is','--ignore-doppelgangers', is_flag=True, help="Ignore duplicate links")
+@click.option('-id','--ignore-doppelgangers', is_flag=True, help="Ignore duplicate links")
 @click.option('-iu','--ignore-urls', multiple=True)
 @click.option('-i', '--ignore', multiple=True, help="Ignored status codes")
 @click.option('-p', '--patience', default=3, help="Max # of seconds to wait for url to respond before reaping")
