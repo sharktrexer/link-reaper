@@ -1,6 +1,6 @@
 # link-reaper
 
-Verifies AND automatically reaps links to keep your lists updated and clean of zombies.
+Verifies AND automatically reaps links to keep your lists updated and clean of "zombies".
 
 # Installation
 
@@ -10,34 +10,27 @@ TBD
 
 ## Terminal
 ```
-/* Checks all markdown links in files and deletes zombies, replaces ghosts, 
-   and applies those changes to the files. */
-link-reaper [file(s)] [options]
-  -f, -files                       Name of files to check, separated by commas
+Usage: reaper.py reap [OPTIONS] [FILES]...
 
-  -i, -ignore [codes]              Status codes to ignore, separated by commas
-      -ignore-copy                 Ignore duplicate links, otherwise subsequent dupes are removed
-      -ignore-ghosts               Ignore redirect links, otherwise are replaced by the appropriate
-                                   new url
-      -ignore-specific [urls]      Ignore links that match inputted link, separated by commas
-
-  -s, -show-afterlife              Creates an afterlife-filename.md for each checked file that only  
-                                   contains the reaped links
-
-  -p, patience [seconds]           Max # of seconds reaper waits for url to respond before reaping
-  
-  -m, -merciful                    Creates a reaped-filename.md for each checked file that contains
-                                   applied changes, if you want to manually compare to the original
-                                   file(s). Otherwise, changes are applied directly to the files.
-
-  -g, -guide [list_file]           Instead of checking every link in the provided file, only the  
-                                   markdown links provided in the list_file are reviewed for reaping.
-                                   Above options will still apply. The purgatory-filename from
-                                   'merciful' could be used as a guide for example. If multiple guides
-                                   are provided, they must be comma separated, and will correspond to
-                                   only one of the inputted -f files.
-
- -h, -help                         This info.
+Options:
+  -s, --show_afterlife         Create an afterlife-filename.md for each
+                               checked file that only contains the reaped
+                               links.
+  -m, --merciful               Instead of overwriting files, create a reaped-
+                               filename.md for each checked file that contains
+                               applied changes.
+  -ig, --ignore_ghosts         Ignore redirect links.
+  -id, --ignore_doppelgangers  Ignore duplicate links.
+  -rt, --reap_timeouts         Reap links that time out.
+  -iu, --ignore_urls TEXT      Ignores specific links you want to whitelist.
+                               Use this option for each url.
+  -rs, --reap_status INTEGER   Status codes you want to be reaped (404 and
+                               300s are default). Use this option per each
+                               code.
+  -p, --patience INTEGER       Max # of seconds to wait for url to to send
+                               data.
+  -g, --guides PATH
+  --help                       Show this message and exit.
 ```
 
 ## Examples

@@ -19,13 +19,17 @@ LINK_URL_RE = re.compile(r'\((.*?)\)')
 # (line_num, name, url, status_code, reason)
 def collect_links(
     files, directory: str = "",
-    ignored_codes: list = [], ignored_links: list = [], guides: list = [],
+    reap_codes: list = [], ignored_links: list = [], guides: list = [],
     do_ignore_copies = False, do_ignore_redirect = False, do_show_afterlife = False, overwrite = True,
     do_reap_timeouts = False, max_timeout = 1
     ):
 
+    file_index = -1
+    
     # Loop thru all inputted files, and create a reaped copy
     for file in files:
+        
+        file_index += 1
         
         #file paths
         reap_file_path = directory + "reaped-" + file
@@ -36,6 +40,11 @@ def collect_links(
         file_urls = []
         undead_links = []
         file_log = []
+        
+        guide_urls = []
+        
+        #if guides:
+            
         
         with (open(file, "r", encoding='utf-8') as cur_file, 
               open(reap_file_path, "w", encoding='utf-8') as reap_file):
@@ -99,7 +108,8 @@ def collect_links(
                         break       
                 
                 # Status doesn't matter here, this is only to track grabbed links found in md
-                file_urls.append(Link(file_line, link_name, raw_url, 0, ""))
+                basic_link = Link(file_line, link_name, raw_url, -1, "")
+                file_urls.append(basic_link)
                 
                 dupe_link = Link(file_line, link_name, raw_url, dupe_status, note)
                 
@@ -123,15 +133,28 @@ def collect_links(
                                         headers={'User-Agent': 'link-reaper'},
                                         verify=False
                                         )
+                # Handle reaping timeouts if desired
+                except requests.exceptions.Timeout as e:
+                    if do_reap_timeouts:
+                        basic_link.note = str(e)
+                        undead_links.append(basic_link)
+                        continue
+                    else:
+                        reap_file.write(line)
+                        
+                        basic_link.note = "Url Timed Out: " + str(e)
+                        file_log.append(basic_link)
+                        continue
                 except Exception as e:
-                    reap_file.write(line)
+                    basic_link.write(line)
                     
                     link_info.note = "Error Resolving Url: " + str(e)
-                    file_log.append(link_info)
+                    file_log.append(basic_link)
                     continue
                 
                 #get link info
                 status = req.status_code
+                file_urls[-1].status = status
                 
                 # Link and its info
                 link_info = Link(
@@ -156,21 +179,22 @@ def collect_links(
                         reap_file.write(new_line)
                         note = "Discovered as Ghost (Redirect)"
                 
-                
-                
-                if (status >= 100 and status < 300) or status in ignored_codes:
+                # Handle status codes that user wants reaped
+                if status in reap_codes:
+                        link_info.note += " This link responded with a status code that you want ignored"
+                # Handling other codes
+                elif (status >= 100 and status < 300) or status in reap_codes:
                     reap_file.write(line)
-                    #file_log.append(link_info)
-                    continue
+                    # Log ignored status codes
                 elif status == 404:
-                    note = "Responded 404"
+                    link_info.note = "Responded 404"
                 elif status >= 400 and status < 500:
-                    link_info.note = "Unauthorized, not reaped"
+                    link_info.note = "Unauthorized Access"
                     file_log.append(link_info)
                     reap_file.write(line)
                     continue
                 elif status >= 500 and status < 600:
-                    link_info.note = "Server Error, not reaped"
+                    link_info.note = "Server Error"
                     file_log.append(link_info)
                     reap_file.write(line)
                     continue
@@ -198,7 +222,7 @@ def collect_links(
         for url in file_urls:
             print("Line:", url.file_line, " | ", url.link_name, url.link_url)
             
-        print("\nProblematic links in: ", file, '\nAssume they are reaped unless specified\n')
+        print("\nProblematic links in: ", file)
         for url in undead_links:
             print(url)
             
