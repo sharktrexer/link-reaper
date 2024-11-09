@@ -3,6 +3,7 @@
 import re, os, requests, urllib.parse
 
 from link import Link
+
 ''' TODO: add ability to accept automatic links inbetween <>
     perhaps enable ability to just check any links in entire file, not just markdown
 '''
@@ -20,11 +21,13 @@ LINK_URL_RE = re.compile(r'\((.*?)\)')
 def collect_links(
     files, directory: str = "",
     reap_codes: list = [], ignored_links: list = [], guides: list = [],
-    do_ignore_copies = False, do_ignore_redirect = False, do_show_afterlife = False, overwrite = True,
+    do_ignore_copies = False, do_ignore_redirect = False,  do_ignore_ssl = True,
+    do_show_afterlife = False, overwrite = True,
     do_reap_timeouts = False, max_timeout = 1
     ):
 
     file_index = -1
+    do_verify = not do_ignore_ssl
     
     # Loop thru all inputted files, and create a reaped copy
     for file in files:
@@ -123,15 +126,14 @@ def collect_links(
                         undead_links.append(dupe_link)
                         continue
                 
-                # only grab links that respond with 404 or 300s
-                # TODO: grab links that timeout as zombies, perhaps a new option for that?
+                # Grabbing links in respect to cli options
                 req = None
                 status = -1
                 try:
                     req = requests.head(raw_url, 
                                         timeout=max_timeout, 
                                         headers={'User-Agent': 'link-reaper'},
-                                        verify=False
+                                        verify=do_verify
                                         )
                 # Handle reaping timeouts if desired
                 except requests.exceptions.Timeout as e:
