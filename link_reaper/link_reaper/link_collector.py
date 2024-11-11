@@ -26,6 +26,9 @@ def collect_links(
     do_reap_timeouts = False, max_timeout = 1,
     ):
 
+    if not directory:
+        directory = os.getcwd()
+
     file_index = -1
     do_verify = not do_ignore_ssl
     
