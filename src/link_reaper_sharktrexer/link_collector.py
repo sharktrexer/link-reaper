@@ -1,6 +1,6 @@
 # checks links in markdown files and prints results
 # results are temp stored so the user can decide to implement them or not
-import re, os, requests, urllib.parse
+import re, os, requests, urllib.parse, click.utils
 
 from link import Link
 
@@ -23,7 +23,7 @@ def collect_links(
     reap_codes: list = [], ignored_links: list = [], guides: list = [],
     do_ignore_copies = False, do_ignore_redirect = False,  do_ignore_ssl = True,
     do_show_afterlife = False, overwrite = True,
-    do_reap_timeouts = False, max_timeout = 1
+    do_reap_timeouts = False, max_timeout = 1,
     ):
 
     file_index = -1
@@ -218,17 +218,15 @@ def collect_links(
         if overwrite: 
             os.replace(reap_file_path, file)
             
-        #TODO: print using click.echo()    
         # Print results
         print("Found links in: ", file)
         for url in file_urls:
-            print("Line:", url.file_line, " | ", url.link_name, url.link_url)
+            click.echo("Line:"+ str(url.file_line) + " | " + url.link_name + url.link_url)
             
         print("\nProblematic links in: ", file)
         for url in undead_links:
-            print(url)
+            click.echo(url)
             
         print("Other link results in ", log_file_path, " for additional info")
         
-    return undead_links 
 
