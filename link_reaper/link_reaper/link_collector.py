@@ -41,7 +41,7 @@ def collect_links(
         reap_file_path = directory + "reaped-" + file
         afterlife_file_path = directory + "afterlife-" + file
         log_file_path = directory + "log-" + file
-        file = directory + file
+        file = directory + '\\' + file
         
         file_urls = []
         undead_links = []
@@ -151,9 +151,9 @@ def collect_links(
                         file_log.append(basic_link)
                         continue
                 except Exception as e:
-                    basic_link.write(line)
+                    reap_file.write(line)
                     
-                    link_info.note = "Error Resolving Url: " + str(e)
+                    basic_link.note = "Error Resolving Url: " + str(e)
                     file_log.append(basic_link)
                     continue
                 

@@ -37,7 +37,7 @@ def link_reaper():
 @click.option('-m', '--merciful', is_flag=True, help="Instead of overwriting files, create a reaped-filename.md for each checked file that contains applied changes.")
 @click.option('-ig', '--ignore_ghosts', is_flag=True, help="Ignore redirect links.")
 @click.option('-id','--ignore_doppelgangers', is_flag=True, help="Ignore duplicate links.")
-@click.option('-is', '--ignore_SSL', is_flag=True, help="Ignore links that result in SSL errors. Not very secure so use with caution.")
+@click.option('-is', '--ignore_ssl', is_flag=True, help="Ignore links that result in SSL errors. Not very secure so use with caution.")
 @click.option('-rt', '--reap_timeouts', is_flag=True, help="Reap links that time out.")
 @click.option('-iu','--ignore_urls', multiple=True, type=str, help="Ignores specific links you want to whitelist. Use this option for each url.")
 @click.option('-rs', '--reap_status', multiple=True, type=int, help="Status codes you want to be reaped (404 and 300s are default). Use this option per each code.")
@@ -47,10 +47,9 @@ def link_reaper():
 def reap(files, guides, 
          show_afterlife, merciful, 
          ignore_ghosts, ignore_doppelgangers, 
-         ignore_urls, reap_status, ignore_SSL,
+         ignore_urls, reap_status, ignore_ssl,
          reap_timeouts, patience
          ):
-    # TODO: for every list option, 
     
     if not files:
         raise click.BadParameter('No files provided')
@@ -64,7 +63,7 @@ def reap(files, guides,
                                  do_ignore_redirect=ignore_ghosts, 
                                  do_show_afterlife=show_afterlife, 
                                  ignored_links=ignore_urls, 
-                                 reap_codes=reap_status, do_ignore_ssl=ignore_SSL,
+                                 reap_codes=reap_status, do_ignore_ssl=ignore_ssl,
                                  do_reap_timeouts=reap_timeouts, max_timeout=patience)
     
 
