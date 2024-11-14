@@ -15,6 +15,8 @@ LINK_RE = re.compile(r'\[(.*?)\)')
 LINK_NAME_RE = re.compile(r'\[(.*?)\]') 
 # (url)
 LINK_URL_RE = re.compile(r'\((.*?)\)') 
+# <url>
+ALT_LINK_URL_RE = re.compile(r'\<(.*?)\>') 
 
 # grab github readme links as a list of tuple strings 
 # (line_num, name, url, status_code, reason)
@@ -27,7 +29,7 @@ def collect_links(
     ):
 
     if not directory:
-        directory = os.getcwd()
+        directory = os.getcwd() + "\\"
 
     file_index = -1
     do_verify = not do_ignore_ssl
@@ -41,7 +43,7 @@ def collect_links(
         reap_file_path = directory + "reaped-" + file
         afterlife_file_path = directory + "afterlife-" + file
         log_file_path = directory + "log-" + file
-        file = directory + '\\' + file
+        file = directory + file
         
         file_urls = []
         undead_links = []
@@ -49,9 +51,10 @@ def collect_links(
         
         guide_urls = []
         
+        #TODO: finish guide functionality
         #if guides:
             
-        
+        #TODO: find a better way to exit cleaning than constant write(line) and continue
         with (open(file, "r", encoding='utf-8') as cur_file, 
               open(reap_file_path, "w", encoding='utf-8') as reap_file):
             
@@ -66,16 +69,16 @@ def collect_links(
                 note = ""
                 
                 # Trying to search for a markdown link
-                link_line = LINK_RE.search(line)
-                if not link_line:
+                md_link = find_markdown_link(line)
+                if not md_link:
                     reap_file.write(line)
                     continue
                 
                 # Found a markdown link
-                link_line = link_line.group()
+                md_link = md_link.group()
                 
-                link_name = LINK_NAME_RE.search(link_line)
-                link_url = LINK_URL_RE.search(link_line)
+                link_name = LINK_NAME_RE.search(md_link)
+                link_url = LINK_URL_RE.search(md_link)
                 
                 # only grab regex matches, otherwise ignore
                 if(link_name == None or link_url == None):
@@ -233,3 +236,10 @@ def collect_links(
         print("Other link results in ", log_file_path, " for additional info")
         
 
+def find_markdown_link(line):
+    md_link = LINK_RE.search(line)
+    
+    if not md_link:
+        md_link = ALT_LINK_URL_RE.search(line)
+
+    return md_link
