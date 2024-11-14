@@ -25,7 +25,7 @@ def collect_links(
     reap_codes: list = [], ignored_links: list = [], guides: list = [],
     do_ignore_copies = False, do_ignore_redirect = False,  do_ignore_ssl = True,
     do_show_afterlife = False, overwrite = True,
-    do_reap_timeouts = False, max_timeout = 1,
+    do_reap_timeouts = False, max_timeout = None,
     ):
 
     if not directory:
@@ -58,7 +58,7 @@ def collect_links(
         with (open(file, "r", encoding='utf-8') as cur_file, 
               open(reap_file_path, "w", encoding='utf-8') as reap_file):
             
-            file_line = -1
+            file_line = 0
             print("\n")
             
             for line in cur_file:
@@ -163,6 +163,7 @@ def collect_links(
                 #get link info
                 status = req.status_code
                 file_urls[-1].status = status
+                does_redirect = 'location' in req.headers
                 
                 # Link and its info
                 link_info = Link(
@@ -174,26 +175,28 @@ def collect_links(
                     )
                 
                 # url has a redirect
-                if 'location' in req.headers:
+                if does_redirect:
                     url_after_redirect = req.headers['location'] 
                     
                     if do_ignore_redirect:
                         # log ignored redirects
                         link_info.note = "This link is a ghost of " + url_after_redirect
                         file_log.append(link_info)
+                        reap_file.write(line)
+                        continue
                     else:
                         # write new url to reap file
                         new_line = line.replace(raw_url, url_after_redirect)
                         reap_file.write(new_line)
-                        note = "Discovered as Ghost (Redirect)"
+                        link_info.note = "Discovered as Ghost (Redirect) | New Url: " + url_after_redirect
                 
                 # Handle status codes that user wants reaped
                 if status in reap_codes:
-                        link_info.note += " This link responded with a status code that you want ignored"
+                        link_info.note += " This link responded with a status code that you want reaped"
                 # Handling other codes
-                elif (status >= 100 and status < 300) or status in reap_codes:
+                elif (status >= 100 and status < 400 and not does_redirect):
                     reap_file.write(line)
-                    # Log ignored status codes
+                    continue
                 elif status == 404:
                     link_info.note = "Responded 404"
                 elif status >= 400 and status < 500:
@@ -201,7 +204,9 @@ def collect_links(
                     file_log.append(link_info)
                     reap_file.write(line)
                     continue
-                elif status >= 500 and status < 600:
+                elif status == 500:
+                    link_info.note = "Server Did Not Respond"
+                elif status >= 501 and status < 600:
                     link_info.note = "Server Error"
                     file_log.append(link_info)
                     reap_file.write(line)

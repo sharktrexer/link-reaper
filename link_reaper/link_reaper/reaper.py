@@ -41,7 +41,7 @@ def link_reaper():
 @click.option('-rt', '--reap_timeouts', is_flag=True, help="Reap links that time out.")
 @click.option('-iu','--ignore_urls', multiple=True, type=str, help="Ignores specific links you want to whitelist. Use this option for each url.")
 @click.option('-rs', '--reap_status', multiple=True, type=int, help="Status codes you want to be reaped (404 and 300s are default). Use this option per each code.")
-@click.option('-p', '--patience', default=1, help="Max # of seconds to wait for url to to send data.")
+@click.option('-p', '--patience', default=10, help="Max # of seconds to wait for url to to send data.")
 @click.option('-g', '--guides', type=click.Path(exists=True))
 @click.argument('files', nargs=-1, type=click.Path(exists=True))
 def reap(files, guides, 
@@ -58,7 +58,7 @@ def reap(files, guides,
         raise click.BadParameter('Number of guides must match the number of files,' 
                                  'or only one guide should be provided')
     
-    link_collector.collect_links(files, guides=guides, overwrite=merciful, 
+    link_collector.collect_links(files, guides=guides, overwrite= not merciful, 
                                  do_ignore_copies=ignore_doppelgangers, 
                                  do_ignore_redirect=ignore_ghosts, 
                                  do_show_afterlife=show_afterlife, 
