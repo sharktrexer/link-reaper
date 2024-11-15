@@ -2,9 +2,21 @@
 
 Verifies AND automatically reaps links to keep your lists updated and clean of "zombies".
 
+Unlike other link verifiers, this one will make direct changes to your markdown files instead of just preventing push/pull requests.
+
 # Installation
 
-TBD
+## Temporary instructions:
+
+0. Have Python installed
+1. Download the link_reaper folder
+2. Open a terminal and change directory to inside that folder, where the .py files reside
+3. Install requried dependencies (requests & Click)
+4. In terminal, call reaper.py reap [OPTIONS] [FILES], with the different options shown below.
+5. Enjoy your markdown file free of dead links!
+
+## Future
+Planning on packaging this project with SetupTools to be used without needing a venv or python installed.
 
 # Usage
 
@@ -21,6 +33,8 @@ Options:
                                applied changes.
   -ig, --ignore_ghosts         Ignore redirect links.
   -id, --ignore_doppelgangers  Ignore duplicate links.
+  -is, --ignore_ssl            Ignore links that result in SSL errors. Not
+                               very secure so use with caution.
   -rt, --reap_timeouts         Reap links that time out.
   -iu, --ignore_urls TEXT      Ignores specific links you want to whitelist.
                                Use this option for each url.
@@ -35,5 +49,8 @@ Options:
 
 ## Examples
 
+TODO
 
 ## GitHub Actions
+
+GitHub Action functionality currently in production.
