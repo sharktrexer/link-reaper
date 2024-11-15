@@ -1,12 +1,15 @@
 # checks links in markdown files and prints results
 # results are temp stored so the user can decide to implement them or not
-import re, os, requests, urllib.parse, click.utils
+import re, os, requests, urllib.parse, click.utils, urllib3
 
 from link import Link
 
 ''' TODO: add ability to accept automatic links inbetween <>
     perhaps enable ability to just check any links in entire file, not just markdown
 '''
+
+# Disable SSL warnings
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # grabs content between [ and )
 # obtaining: [name](https://test.com)
@@ -55,8 +58,12 @@ def collect_links(
         #if guides:
             
         #TODO: find a better way to exit cleaning than constant write(line) and continue
+        #TODO: output # of links founds and # of links reaped
+        #TODO: better feedback for user when processing links
         with (open(file, "r", encoding='utf-8') as cur_file, 
               open(reap_file_path, "w", encoding='utf-8') as reap_file):
+            
+            click.echo("Processing " + file)
             
             file_line = 0
             print("\n")

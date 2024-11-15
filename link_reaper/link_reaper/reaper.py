@@ -58,6 +58,9 @@ def reap(files, guides,
         raise click.BadParameter('Number of guides must match the number of files,' 
                                  'or only one guide should be provided')
     
+    if ignore_ssl:
+        click.echo('\nWarning: ignoring SSL errors. Use with caution.')
+    
     link_collector.collect_links(files, guides=guides, overwrite= not merciful, 
                                  do_ignore_copies=ignore_doppelgangers, 
                                  do_ignore_redirect=ignore_ghosts, 
