@@ -31,7 +31,8 @@ INTRO = """
 def link_reaper():
     click.echo(INTRO)
     
-# TODO: fix the ignore ssl flag bug!!!
+# TODO: add verbose(?) mode that explains more about what is happening
+# TODO: let user know what options they used? Like if merciful then print "not overwriting files"
 @link_reaper.command(context_settings={"ignore_unknown_options": True})
 @click.option('-s', '--show_afterlife', is_flag=True, help="Create an afterlife-filename.md for each checked file that only contains the reaped links.")
 @click.option('-m', '--merciful', is_flag=True, help="Instead of overwriting files, create a reaped-filename.md for each checked file that contains applied changes.")

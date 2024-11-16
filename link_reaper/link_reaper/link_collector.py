@@ -3,6 +3,7 @@
 import re, os, requests, urllib.parse, click.utils, urllib3
 
 from link import Link
+from requests.exceptions import ConnectionError, Timeout, ConnectTimeout
 
 ''' TODO: add ability to accept automatic links inbetween <>
     perhaps enable ability to just check any links in entire file, not just markdown
@@ -28,7 +29,7 @@ def collect_links(
     reap_codes: list = [], ignored_links: list = [], guides: list = [],
     do_ignore_copies = False, do_ignore_redirect = False,  do_ignore_ssl = True,
     do_show_afterlife = False, overwrite = True,
-    do_reap_timeouts = False, max_timeout = None,
+    do_reap_timeouts = False, max_timeout = 10,
     ):
 
     if not directory:
@@ -148,8 +149,8 @@ def collect_links(
                                         headers={'User-Agent': 'link-reaper'},
                                         verify=do_verify
                                         )
-                # Handle reaping timeouts if desired
-                except requests.exceptions.Timeout as e:
+                # Handle reaping timeouts based on timeout var if desired
+                except Timeout as e:
                     if do_reap_timeouts:
                         basic_link.note = str(e)
                         undead_links.append(basic_link)
@@ -160,6 +161,12 @@ def collect_links(
                         basic_link.note = "Url Timed Out: " + str(e)
                         file_log.append(basic_link)
                         continue
+                # Handling connection errors and connection timeouts
+                #TODO: make error msg prettier
+                except (ConnectionError, ConnectTimeout) as e:
+                    basic_link.note = str(e)
+                    undead_links.append(basic_link) 
+                    continue
                 except Exception as e:
                     reap_file.write(line)
                     
@@ -182,6 +189,15 @@ def collect_links(
                     )
                 
                 # url has a redirect
+                # TODO: fix bug where new url is only a /path and not a full url
+                ''' EXAMPLEs: 
+                 (https://www.adaface.com/pair-pro) New Url: /online-assessment-platform  
+                 (https://visto.ai/find-a-job) New Url: /
+                '''
+                # TODO: fix bug where a new url is found but doesn't change anything
+                ''' EXAMPLE:
+                 (https://sende.co/) New Url: https://www.sende.co/
+                '''
                 if does_redirect:
                     url_after_redirect = req.headers['location'] 
                     
