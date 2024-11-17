@@ -1,9 +1,14 @@
 # vscode
 .venv
+.testenv
 .vscode
 
 # python
 __pycache__
+dist
 
-# testing folder
+# packaging
+*.egg-info/
+
+# private testing folder
 test

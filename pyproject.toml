@@ -3,16 +3,26 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "link_reaper_sharktrexer"
-version = "0.0.1"
+name = "link_reaper"
+version = "0.5.0"
+dependencies = [
+    "requests",
+    "Click"
+]
 authors = [
   { name="Ibrahim", email="sharktrexer@gmail.com" },
 ]
-description = "Removes dead & copies of links from markdown file and updates redirects."
+description = "Removes dead & duplicate links from markdown files and updates redirects."
 readme = "README.md"
+license = {file = "LICENSE"}
 requires-python = ">=3.9.6"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+
+[project.scripts]
+link-reaper = "link_reaper:reaper"
+link-collector = "link_reaper:link_collector"
+link = "link_reaper:link"

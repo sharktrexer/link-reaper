@@ -1,8 +1,7 @@
 # checks links in markdown files and prints results
-# results are temp stored so the user can decide to implement them or not
 import re, os, requests, urllib.parse, click.utils, urllib3
 
-from link import Link
+from .link import Link
 from requests.exceptions import ConnectionError, Timeout, ConnectTimeout
 
 ''' TODO: add ability to accept automatic links inbetween <>
