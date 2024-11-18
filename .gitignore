@@ -5,10 +5,10 @@
 
 # python
 __pycache__
-dist
 
 # packaging
 *.egg-info/
+dist
 
 # private testing folder
 test

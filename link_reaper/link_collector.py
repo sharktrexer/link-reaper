@@ -75,40 +75,43 @@ def collect_links(
                 # Url's reason for being a zombie/getting deleted or modified
                 note = ""
                 
+                
                 # Trying to search for a markdown link
+                # either [name](url) or <url>
                 md_link = find_markdown_link(line)
                 if not md_link:
-                    reap_file.write(line)
-                    continue
-                
-                # Found a markdown link
-                md_link = md_link.group()
-                
-                link_name = LINK_NAME_RE.search(md_link)
-                link_url = LINK_URL_RE.search(md_link)
-                
-                # only grab regex matches, otherwise ignore
-                if(link_name == None or link_url == None):
-                    reap_file.write(line)
-                    continue;
-                
-                # grab text between parentheses
-                link_name = link_name.group()[1:-1]
-                raw_url = link_url.group()[1:-1]
-                
-                #validate that the captured "link" is actually a link
-                try:
-                    parsed_url = urllib.parse.urlparse(raw_url)
-                    if not parsed_url.scheme:
+                    md_link = ALT_LINK_URL_RE.search(line)
+                    if not md_link:
                         reap_file.write(line)
                         continue
-                except ValueError:
+                    
+                    link_name = ""
+                    raw_url = md_link.group()[1:-1]
+                else:
+                    # Found a potential markdown link
+                    link_name = LINK_NAME_RE.search(md_link)
+                    link_url = LINK_URL_RE.search(md_link)
+                
+                    # only grab regex matches, otherwise ignore
+                    if(link_name == None or link_url == None):
+                        reap_file.write(line)
+                        continue;
+                
+                    # grab text between parentheses
+                    link_name = link_name.group()[1:-1]
+                    raw_url = link_url.group()[1:-1]
+                
+                #validate that the captured "link" is actually a https url
+                if not check_url_validity(raw_url):
                     reap_file.write(line)
                     continue
+                
+                click.echo("Found " + raw_url)
                 
                 # ignore specified links
                 if raw_url in ignored_links:
                     reap_file.write(line)
+                    click.echo("Ignored as specified")
                     continue
                 
                 # deal with duplicate links
@@ -123,7 +126,7 @@ def collect_links(
                         is_dupe = True
                         break       
                 
-                # Status doesn't matter here, this is only to track grabbed links found in md
+                # Status is unknown, however this keeps track of links seen
                 basic_link = Link(file_line, link_name, raw_url, -1, "")
                 file_urls.append(basic_link)
                 
@@ -166,6 +169,7 @@ def collect_links(
                     basic_link.note = str(e)
                     undead_links.append(basic_link) 
                     continue
+                # Other unknown errors aren't reaped, up to the user to take action
                 except Exception as e:
                     reap_file.write(line)
                     
@@ -175,6 +179,7 @@ def collect_links(
                 
                 #get link info
                 status = req.status_code
+                # update status in stored links if possible.
                 file_urls[-1].status = status
                 does_redirect = 'location' in req.headers
                 
@@ -263,10 +268,23 @@ def collect_links(
         print("Other link results in ", log_file_path, " for additional info")
         
 
+# checks line for markdown link matches
+'''
+[name](url)
+<url>
+'''
 def find_markdown_link(line):
     md_link = LINK_RE.search(line)
     
-    if not md_link:
-        md_link = ALT_LINK_URL_RE.search(line)
-
     return md_link
+
+# if url has a scheme it is valid
+def check_url_validity(url):
+    try:
+        parsed_url = urllib.parse.urlparse(url)
+        if not parsed_url.scheme:
+            return False
+    except ValueError:
+        return False
+    
+    return True
