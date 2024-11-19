@@ -1,7 +1,7 @@
 # checks links in markdown files and prints results
 import re, os, requests, urllib.parse, click.utils, urllib3
 
-from .link import Link
+from link import Link
 from requests.exceptions import ConnectionError, Timeout, ConnectTimeout
 
 ''' TODO: add ability to accept automatic links inbetween <>
@@ -80,26 +80,11 @@ def collect_links(
                 # either [name](url) or <url>
                 md_link = find_markdown_link(line)
                 if not md_link:
-                    md_link = ALT_LINK_URL_RE.search(line)
-                    if not md_link:
                         reap_file.write(line)
                         continue
-                    
-                    link_name = ""
-                    raw_url = md_link.group()[1:-1]
-                else:
-                    # Found a potential markdown link
-                    link_name = LINK_NAME_RE.search(md_link)
-                    link_url = LINK_URL_RE.search(md_link)
                 
-                    # only grab regex matches, otherwise ignore
-                    if(link_name == None or link_url == None):
-                        reap_file.write(line)
-                        continue;
-                
-                    # grab text between parentheses
-                    link_name = link_name.group()[1:-1]
-                    raw_url = link_url.group()[1:-1]
+                link_name = md_link[0]
+                raw_url = md_link[1]    
                 
                 #validate that the captured "link" is actually a https url
                 if not check_url_validity(raw_url):
@@ -204,7 +189,7 @@ def collect_links(
                 '''
                 if does_redirect:
                     url_after_redirect = req.headers['location'] 
-                    
+                    print("AHHHHHHH " + urllib.parse.urlparse(url_after_redirect).path)
                     if do_ignore_redirect:
                         # log ignored redirects
                         link_info.note = "This link is a ghost of " + url_after_redirect
@@ -259,7 +244,7 @@ def collect_links(
         # Print results
         print("Found links in: ", file)
         for url in file_urls:
-            click.echo("Line:"+ str(url.file_line) + " | " + url.link_name + url.link_url)
+            click.echo("Line "+ str(url.file_line) + " | " + url.link_name +" " + url.link_url)
             
         print("\nProblematic links in: ", file)
         for url in undead_links:
@@ -276,7 +261,30 @@ def collect_links(
 def find_markdown_link(line):
     md_link = LINK_RE.search(line)
     
-    return md_link
+    # if [name](url) doesn't match, try <url>
+    if not md_link:
+        md_link = ALT_LINK_URL_RE.search(line)
+        if not md_link:
+            return None
+        
+        link_name = ""
+        raw_url = md_link.group()[1:-1]
+        
+        return (link_name, raw_url)
+    else:
+        # separating [name] and (url)
+        link_name = LINK_NAME_RE.search(md_link.group())
+        link_url = LINK_URL_RE.search(md_link.group())
+    
+        # ensure regex match includes [name] and (url) and not something like [blah)
+        if(link_name == None or link_url == None):
+            return None
+    
+        # exclude brackets
+        link_name = link_name.group()[1:-1]
+        raw_url = link_url.group()[1:-1]
+        
+        return (link_name, raw_url)
 
 # if url has a scheme it is valid
 def check_url_validity(url):

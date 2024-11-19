@@ -1,6 +1,6 @@
 #shell commands
 import click
-from . import link_collector
+import link_collector
 
 PROMPT = "💀 "
 INTRO = """
