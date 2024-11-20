@@ -2,6 +2,7 @@
 import re, os, requests, urllib.parse, click.utils, urllib3
 
 from link import Link
+from urllib.parse import urlparse, urlsplit, urlunsplit
 from requests.exceptions import ConnectionError, Timeout, ConnectTimeout
 
 ''' TODO: add ability to accept automatic links inbetween <>
@@ -58,7 +59,6 @@ def collect_links(
         #if guides:
             
         #TODO: find a better way to exit cleaning than constant write(line) and continue
-        #TODO: output # of links founds and # of links reaped
         #TODO: better feedback for user when processing links
         with (open(file, "r", encoding='utf-8') as cur_file, 
               open(reap_file_path, "w", encoding='utf-8') as reap_file):
@@ -178,18 +178,17 @@ def collect_links(
                     )
                 
                 # url has a redirect
-                # TODO: fix bug where new url is only a /path and not a full url
-                ''' EXAMPLEs: 
-                 (https://www.adaface.com/pair-pro) New Url: /online-assessment-platform  
-                 (https://visto.ai/find-a-job) New Url: /
-                '''
-                # TODO: fix bug where a new url is found but doesn't change anything
-                ''' EXAMPLE:
-                 (https://sende.co/) New Url: https://www.sende.co/
-                '''
                 if does_redirect:
+                    
                     url_after_redirect = req.headers['location'] 
-                    print("AHHHHHHH " + urllib.parse.urlparse(url_after_redirect).path)
+                        
+                    # ifredirect is just a new path, replace the path in old url
+                    if url_after_redirect[0] == '/':
+                        split_url = list(urlsplit(raw_url))
+                        # path replacement
+                        split_url[2] = url_after_redirect
+                        url_after_redirect = urlunsplit(split_url)
+                    
                     if do_ignore_redirect:
                         # log ignored redirects
                         link_info.note = "This link is a ghost of " + url_after_redirect
@@ -289,7 +288,7 @@ def find_markdown_link(line):
 # if url has a scheme it is valid
 def check_url_validity(url):
     try:
-        parsed_url = urllib.parse.urlparse(url)
+        parsed_url = urlparse(url)
         if not parsed_url.scheme:
             return False
     except ValueError:
