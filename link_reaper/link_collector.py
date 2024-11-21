@@ -63,18 +63,12 @@ def collect_links(
         with (open(file, "r", encoding='utf-8') as cur_file, 
               open(reap_file_path, "w", encoding='utf-8') as reap_file):
             
-            click.echo("Processing " + file)
+            click.echo("Processing " + file + "...\n")
             
-            file_line = 0
-            print("\n")
-            
-            for line in cur_file:
+            for line_num, line in enumerate(cur_file, start=1):
 
-                # line count
-                file_line += 1
                 # Url's reason for being a zombie/getting deleted or modified
                 note = ""
-                
                 
                 # Trying to search for a markdown link
                 # either [name](url) or <url>
@@ -103,19 +97,19 @@ def collect_links(
                 is_dupe = False  
                 dupe_status = 200
                 for grabbed_link in file_urls:
-                    if raw_url == grabbed_link.link_url:
+                    if raw_url == grabbed_link.url:
                         note = ("Doppelganger of " + 
-                                        grabbed_link.link_name + ", Line " +
+                                        grabbed_link.name + ", Line " +
                                         str(grabbed_link.file_line))
                         dupe_status = grabbed_link.status
                         is_dupe = True
                         break       
                 
                 # Status is unknown, however this keeps track of links seen
-                basic_link = Link(file_line, link_name, raw_url, -1, "")
+                basic_link = Link(line_num, link_name, raw_url, -1, "")
                 file_urls.append(basic_link)
                 
-                dupe_link = Link(file_line, link_name, raw_url, dupe_status, note)
+                dupe_link = Link(line_num, link_name, raw_url, dupe_status, note)
                 
                 # Handle copies
                 if is_dupe:
@@ -134,7 +128,7 @@ def collect_links(
                     req = requests.head(raw_url, 
                                         timeout=max_timeout, 
                                         headers={'User-Agent': 'link-reaper'},
-                                        verify=do_verify
+                                        verify=do_verify,
                                         )
                 # Handle reaping timeouts based on timeout var if desired
                 except Timeout as e:
@@ -164,19 +158,22 @@ def collect_links(
                 
                 #get link info
                 status = req.status_code
+                
                 # update status in stored links if possible.
                 file_urls[-1].status = status
                 does_redirect = 'location' in req.headers
                 
+                #TODO: find a better way to exit cleaning than constant write(line) and continue    
                 # Link and its info
                 link_info = Link(
-                    file_line,
+                    line_num,
                     link_name, 
                     raw_url,
                     status,
                     ""
                     )
                 
+                # TODO: after fetching new url, check it again for status and further redirects
                 # url has a redirect
                 if does_redirect:
                     
@@ -199,7 +196,7 @@ def collect_links(
                         # write new url to reap file
                         new_line = line.replace(raw_url, url_after_redirect)
                         reap_file.write(new_line)
-                        link_info.note = "Discovered as Ghost (Redirect) | New Url: " + url_after_redirect
+                        link_info.note += " Redirected --> " + url_after_redirect
                 
                 # Handle status codes that user wants reaped
                 if status in reap_codes:
@@ -209,7 +206,7 @@ def collect_links(
                     reap_file.write(line)
                     continue
                 elif status == 404:
-                    link_info.note = "Responded 404"
+                    link_info.note = "Does not exists"
                 elif status >= 400 and status < 500:
                     link_info.note = "Unauthorized Access"
                     file_log.append(link_info)
@@ -225,6 +222,9 @@ def collect_links(
                 
                 undead_links.append(link_info)
         
+        click.echo("Reaped " + str(len(undead_links)) + "/" 
+                   + str(len(file_urls)) + " links in " + file)
+        
         # Write undead_links to afterlife-filename.md
         if do_show_afterlife:   
             with open(afterlife_file_path, 'w', encoding='utf-8') as afterlife_file:
@@ -234,16 +234,16 @@ def collect_links(
         # Write log to log-filename.md
         with open(log_file_path, 'w', encoding='utf-8') as log_file:
             for link in file_log:
-                log_file.write(link.__str__() + "\n")
+                log_file.write(link.__str__() + "\n\n")
             
         # Replace 
         if overwrite: 
             os.replace(reap_file_path, file)
             
         # Print results
-        print("Found links in: ", file)
-        for url in file_urls:
-            click.echo("Line "+ str(url.file_line) + " | " + url.link_name +" " + url.link_url)
+        #print("Found links in: ", file)
+        #for url in file_urls:
+        #    click.echo("Line "+ str(url.file_line) + " | " + url.link_name +" " + url.link_url)
             
         print("\nProblematic links in: ", file)
         for url in undead_links:

@@ -43,7 +43,7 @@ def link_reaper():
 @click.option('-iu','--ignore_urls', multiple=True, type=str, help="Ignores specific links you want to whitelist. Use this option for each url.")
 @click.option('-rs', '--reap_status', multiple=True, type=int, help="Status codes you want to be reaped (404 and 300s are default). Use this option per each code.")
 @click.option('-p', '--patience', default=10, help="Max # of seconds to wait for url to to send data.")
-@click.option('-g', '--guides', type=click.Path(exists=True))
+@click.option('-g', '--guides', type=click.Path(exists=True), multiple=True, help="Files containing the only links that need to be checked")
 @click.argument('files', nargs=-1, type=click.Path(exists=True))
 def reap(files, guides, 
          show_afterlife, merciful, 
