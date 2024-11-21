@@ -4,8 +4,8 @@ class Link:
             file_line: int,
             name: str, 
             url: str,
-            status: int,
-            note: str,
+            status: int = -1,
+            note: str = "",
             history: list = [],
             ):
 
