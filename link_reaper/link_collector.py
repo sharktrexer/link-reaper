@@ -5,9 +5,8 @@ from link import Link
 from urllib.parse import urlparse, urlsplit, urlunsplit
 from requests.exceptions import ConnectionError, Timeout, ConnectTimeout
 
-''' TODO: add ability to accept automatic links inbetween <>
-    perhaps enable ability to just check any links in entire file, not just markdown
-'''
+
+# perhaps enable ability to just check any links in entire file, not just markdown?
 
 # Disable SSL warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -29,7 +28,7 @@ def collect_links(
     reap_codes: list = [], ignored_links: list = [], guides: list = [],
     do_ignore_copies = False, do_ignore_redirect = False,  do_ignore_ssl = True,
     do_show_afterlife = False, overwrite = True,
-    do_reap_timeouts = False, max_timeout = 10,
+    ignore_timeouts = False, max_timeout = 15,
     ):
 
     if not directory:
@@ -55,10 +54,9 @@ def collect_links(
         
         guide_urls = []
         
-        #TODO: finish guide functionality
+        # Should the guide system be a thing?
         #if guides:
             
-        #TODO: find a better way to exit cleaning than constant write(line) and continue
         #TODO: better feedback for user when processing links
         with (open(file, "r", encoding='utf-8') as cur_file, 
               open(reap_file_path, "w", encoding='utf-8') as reap_file):
@@ -90,12 +88,12 @@ def collect_links(
                     click.echo("Ignored as specified")
                     continue
                 
-                cur_link = Link(line_num, link_name, raw_url)
+                cur_link = Link(line_num, link_name, raw_url, history=[])
                 
                 # deal with duplicate links
                 is_dupe = False  
                 for grabbed_link in file_urls:
-                    if raw_url == grabbed_link.url:
+                    if raw_url == grabbed_link.url or raw_url in grabbed_link.history:
                         cur_link.note = ("Doppelganger of " + 
                                         grabbed_link.name + ", Line " +
                                         str(grabbed_link.file_line))
@@ -117,97 +115,33 @@ def collect_links(
                     # dont need to evaluate duplicate urls
                     continue
                 
-                # Grabbing links in respect to cli options
-                try:
-                    req = requests.head(raw_url, 
-                                        timeout=max_timeout, 
-                                        headers={'User-Agent': 'link-reaper'},
-                                        verify=do_verify,
-                                        )
-                # Handle reaping timeouts based on timeout var if desired
-                except Timeout as e:
-                    if do_reap_timeouts:
-                        cur_link.note = str(e)
+                obtain_request(cur_link, 
+                               do_verify, 
+                               ignore_timeouts, 
+                               max_timeout, 
+                               do_ignore_redirect, 
+                               reap_codes)
+                
+                if cur_link.result == "Reaped":
+                    undead_links.append(cur_link)
+                    continue
+                elif cur_link.result == "Logged":
+                    file_log.append(cur_link)
+                    reap_file.write(line)
+                    continue
+                elif cur_link.result == "All Good":
+                    # If redirect occured, update the link
+                    if cur_link.history:
+                        new_line = line.replace(raw_url, cur_link.url)
+                        cur_link.status = cur_link.og_code
                         undead_links.append(cur_link)
-                        continue
-                    else:
-                        reap_file.write(line)
-                        
-                        cur_link.note = "Url Timed Out: " + str(e)
-                        file_log.append(cur_link)
-                        continue
-                # Handling connection errors and connection timeouts
-                #TODO: make error msg prettier
-                except (ConnectionError, ConnectTimeout) as e:
-                    cur_link.note = str(e)
-                    undead_links.append(cur_link) 
-                    continue
-                # Other unknown errors aren't reaped, up to the user to take action
-                except Exception as e:
-                    reap_file.write(line)
-                    
-                    cur_link.note = "Error Resolving Url: " + str(e)
-                    file_log.append(cur_link)
-                    continue
-                
-                #get link info
-                cur_link.status = req.status_code
-                does_redirect = 'location' in req.headers  
-                
-                # update status in stored links if possible.
-                file_urls[-1].status = req.status_code
-                
-                # TODO: after fetching new url, check it for status and further redirects
-                # url has a redirect
-                if does_redirect:
-                    
-                    url_after_redirect = req.headers['location'] 
-                        
-                    # ifredirect is just a new path, replace the path in old url
-                    if url_after_redirect[0] == '/':
-                        split_url = list(urlsplit(raw_url))
-                        # path replacement
-                        split_url[2] = url_after_redirect
-                        url_after_redirect = urlunsplit(split_url)
-                    
-                    if do_ignore_redirect:
-                        # log ignored redirects
-                        cur_link.note = "This link is a ghost of " + url_after_redirect
-                        file_log.append(cur_link)
-                        reap_file.write(line)
-                        continue
-                    else:
-                        # write new url to reap file
-                        new_line = line.replace(raw_url, url_after_redirect)
                         reap_file.write(new_line)
-                        cur_link.note += " Redirected --> " + url_after_redirect
-                
-                # Handle status codes that user wants reaped
-                status = cur_link.status
-                if status in reap_codes:
-                        cur_link.note += " This link responded with a status code that you want reaped"
-                # Handling other codes
-                elif (status >= 100 and status < 400 and not does_redirect):
-                    reap_file.write(line)
+                    else:
+                        reap_file.write(line)
                     continue
-                elif status == 404:
-                    cur_link.note = "Does not exists"
-                elif status >= 400 and status < 500:
-                    cur_link.note = "Unauthorized Access"
-                    file_log.append(cur_link)
-                    reap_file.write(line)
-                    continue
-                elif status == 500:
-                    cur_link.note = "Server Did Not Respond"
-                elif status >= 501 and status < 600:
-                    cur_link.note = "Server Error"
-                    file_log.append(cur_link)
-                    reap_file.write(line)
-                    continue
-                
-                undead_links.append(cur_link)
+            #EOF
         
-        click.echo("Reaped " + str(len(undead_links)) + "/" 
+        click.echo("\nReaped " + str(len(undead_links)) + "/" 
                    + str(len(file_urls)) + " links in " + file)
         
         # Write undead_links to afterlife-filename.md
@@ -280,3 +214,114 @@ def check_url_validity(url):
         return False
     
     return True
+
+def obtain_request(link: Link, 
+                   do_verify: bool, 
+                   ignore_timeouts: bool, 
+                   max_timeout: int, 
+                   do_ignore_redirect: bool,
+                   reap_codes: list
+                   ):
+    
+    # Loop for as many times are there are redirects
+    while(True):
+        # print("checking: ", link.url)
+        # print("Current history: ", link.history)
+        # print("Link: ", link)
+        # Testing links responses in respect to cli options
+        try:
+            req = requests.head(link.url, 
+                                timeout=max_timeout, 
+                                headers={'User-Agent': 'link-reaper'},
+                                verify=do_verify,
+                                )
+        # Handle reaping timeouts based on timeout var if desired
+        except Timeout as e:
+            
+            if ignore_timeouts:
+                link.note = "Url Timed Out: " + str(e)
+                link.result = "Logged"
+                return
+            else:             
+                link.note = str(e)
+                link.result = "Reaped"
+                return
+            
+        # Handling connection errors and connection timeouts
+        #TODO: make error msg prettier
+        except (ConnectionError, ConnectTimeout) as e:
+            
+            link.note = str(e)
+            link.result = "Reaped"
+            return
+        
+        # Other unknown errors aren't reaped, up to the user to take action
+        except Exception as e:
+            
+            link.note = "Error Resolving Url: " + str(e)
+            link.result = "Logged"
+            return
+        
+        
+        #get link info
+        link.status = req.status_code
+        
+        # Store original code before redirects
+        if not link.history:
+            link.og_code = link.status
+            
+        does_redirect = 'location' in req.headers  
+        
+        # url has a redirect
+        if does_redirect:
+            
+            if do_ignore_redirect:
+                # log ignored redirects
+                link.note = "This link is a ghost"
+                link.result = "Logged"
+                return
+            
+            url_after_redirect = req.headers['location'] 
+                
+            # if redirect is just a new path, replace the path in old url
+            if url_after_redirect[0] == '/':
+                split_url = list(urlsplit(link.url))
+                # path replacement
+                split_url[2] = url_after_redirect
+                url_after_redirect = urlunsplit(split_url)
+            
+            # update link to new url, keeping track of redirects
+            link.history.append(link.url)
+            link.url = url_after_redirect
+            link.note = "Updated to most current redirect"
+            continue
+        else:
+
+            status = link.status
+            # Handle status codes that user wants reaped
+            if status in reap_codes:
+                    link.note += " This link responded with a status code that you want reaped"
+                    link.result = "Reaped"
+                    
+            # Handling other codes
+            elif (status >= 100 and status < 400 and not does_redirect):
+                link.result = "All Good"
+                
+            elif status == 404:
+                link.note = "Does not exist"
+                link.result = "Reaped"
+                
+            elif status >= 400 and status < 500:
+                link.note = "Unauthorized Access"
+                link.result = "Logged"
+                
+            elif status == 500:
+                link.note = "Server Did Not Respond"
+                link.result = "Reaped"
+                
+            elif status >= 501 and status < 600:
+                link.note = "Server Error"
+                link.result = "Logged"
+                
+            return
+    
