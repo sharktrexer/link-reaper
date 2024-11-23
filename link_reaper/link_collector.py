@@ -5,6 +5,11 @@ from link import Link
 from urllib.parse import urlparse, urlsplit, urlunsplit
 from requests.exceptions import ConnectionError, Timeout, ConnectTimeout
 
+# TODO: have some way to check if url is for sale and reap it so
+# TODO: check and handle multiple [name](url) in one line
+# TODO: links like 
+#       don't get caught as redirect
+
 
 # perhaps enable ability to just check any links in entire file, not just markdown?
 
@@ -52,7 +57,7 @@ def collect_links(
         undead_links = []
         file_log = []
         
-        guide_urls = []
+        #guide_urls = []
         
         # Should the guide system be a thing?
         #if guides:
@@ -64,6 +69,9 @@ def collect_links(
             click.echo("Processing " + file + "...\n")
             
             for line_num, line in enumerate(cur_file, start=1):
+                
+                line_links = grab_md_links(line)
+                print ("Links: " + str(line_links))
                 
                 # Trying to search for a markdown link
                 # either [name](url) or <url>
@@ -225,7 +233,7 @@ def obtain_request(link: Link,
     
     # Loop for as many times are there are redirects
     while(True):
-        # print("checking: ", link.url)
+        #print("checking: ", link.url)
         # print("Current history: ", link.history)
         # print("Link: ", link)
         # Testing links responses in respect to cli options
@@ -271,7 +279,7 @@ def obtain_request(link: Link,
             link.og_code = link.status
             
         does_redirect = 'location' in req.headers  
-        
+        #print(does_redirect)
         # url has a redirect
         if does_redirect:
             
@@ -315,7 +323,7 @@ def obtain_request(link: Link,
                 link.note = "Unauthorized Access"
                 link.result = "Logged"
                 
-            elif status == 500:
+            elif status == 500 or status == 521:
                 link.note = "Server Did Not Respond"
                 link.result = "Reaped"
                 
@@ -324,4 +332,33 @@ def obtain_request(link: Link,
                 link.result = "Logged"
                 
             return
+'''    
+ Captures markdown links without use of regex
+ Assumes url doesn't contain parenthesis, and is a markdown link [name](url)
+ TODO: capture <url> as well
+'''
+def grab_md_links(line: str) -> list:
+    md_links = []
+    start_capture = 0
+    starting_name = False
+    found_name = False
+    starting_url = False
+    end_capture = 0
     
+    for ind, c in enumerate(line):
+        if c == '[' and not starting_name:
+            start_capture = ind
+            starting_name = True
+        elif c == ']' and starting_name and ind+1 < len(line) and line[ind+1] == '(':
+            found_name = True
+        elif c == '(' and found_name:
+            starting_url = True
+        elif c == ')' and starting_url:
+            found_url = True
+            end_capture = ind
+            md_links.append(line[start_capture:end_capture+1])
+            starting_name = False
+            starting_url = False
+            found_name = False
+
+    return md_links
