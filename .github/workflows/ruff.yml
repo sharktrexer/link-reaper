@@ -1,7 +1,9 @@
 name: Ruff Lint & Format
+
 on: [push, pull_request]
+
 jobs:
-  ruff_lint:
+  ruff:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout ruff repo
@@ -11,14 +13,8 @@ jobs:
       - uses: astral-sh/ruff-action@v1
         with:
           args: "check -v"
-          
-  ruff_format:
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout ruff repo
-        - uses: actions/checkout@v4
-          
-        - name: Format
-        - uses: astral-sh/ruff-action@v1
-          with:
-            args: "format --check -v"
+
+      - name: Format
+      - uses: astral-sh/ruff-action@v1
+        with:
+          args: "format --check -v"
