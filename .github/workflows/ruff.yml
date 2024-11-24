@@ -1,17 +1,24 @@
-name: Ruff
+name: Ruff Lint & Format
 on: [push, pull_request]
 jobs:
-  ruff:
+  ruff_lint:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout ruff repo
       - uses: actions/checkout@v4
       
       - name: Lint
       - uses: astral-sh/ruff-action@v1
         with:
-          args: "check"
-        
-      - name: Format
-      - uses: astral-sh/ruff-action@v1
-        with:
-          args: "format --check"
+          args: "check -v"
+          
+  ruff_format:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout ruff repo
+        - uses: actions/checkout@v4
+          
+        - name: Format
+        - uses: astral-sh/ruff-action@v1
+          with:
+            args: "format --check -v"
