@@ -5,6 +5,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Lint
+      - uses: astral-sh/ruff-action@v1
+        with:
+          args: "check"
+        
+      - name: Format
       - uses: astral-sh/ruff-action@v1
         with:
           args: "format --check"
