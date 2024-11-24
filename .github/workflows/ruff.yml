@@ -7,14 +7,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout ruff repo
-      - uses: actions/checkout@v4
+        uses: actions/checkout@v4
       
       - name: Lint
-      - uses: astral-sh/ruff-action@v1
+        uses: astral-sh/ruff-action@v1
         with:
           args: "check -v"
 
       - name: Format
-      - uses: astral-sh/ruff-action@v1
+        uses: astral-sh/ruff-action@v1
         with:
           args: "format --check -v"
