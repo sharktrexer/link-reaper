@@ -1,7 +1,7 @@
 """CLI for link_reaper"""
 
 import click
-from link_reaper import link_collector
+from . import link_collector
 
 INTRO = """ 
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣤⠀⠀

@@ -7,16 +7,15 @@ import click.utils
 import urllib3
 
 from . import link_info
+from collections import namedtuple
 from urllib.parse import urlparse, urlsplit, urlunsplit
 from requests.exceptions import ConnectionError, Timeout, ConnectTimeout
 
 # TODO: have some way to check if url is for sale and reap it so
 # TODO: check and handle multiple [name](url) in one line
-# TODO: links like
-#       don't get caught as redirect
-
-
 # perhaps enable ability to just check any links in entire file, not just markdown?
+
+Markdown_Link = namedtuple("Markdown_Link", ["name", "url"])
 
 # Disable SSL warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -80,11 +79,13 @@ def collect_links(
             click.echo("Processing " + file + "...\n")
 
             for line_num, line in enumerate(cur_file, start=1):
+                # Grabbing all md links in the file line
                 line_links = grab_md_links(line)
                 print("Links: " + str(line_links))
 
                 # Trying to search for a markdown link
                 # either [name](url) or <url>
+
                 md_link = find_markdown_link(line)
                 if not md_link:
                     reap_file.write(line)
@@ -357,30 +358,45 @@ def obtain_request(
 def grab_md_links(line: str) -> list:
     """
     Captures markdown links without use of regex
-    Assumes url doesn't contain parenthesis, and is a markdown link [name](url)
-    TODO: capture <url> as well
+    Assumes url doesn't contain parenthesis, and is a markdown link [name](url) or <url>
     """
 
     md_links = []
     start_capture = 0
+    capturing_chevrons = False
     starting_name = False
     found_name = False
+    end_name = 0
     starting_url = False
     end_capture = 0
 
     for ind, c in enumerate(line):
-        if c == "[" and not starting_name:
+        # For <url>
+        if c == "<" and not starting_name:
+            start_capture = ind
+            capturing_chevrons = True
+            starting_name = True
+        elif c == ">" and capturing_chevrons:
+            url = line[start_capture : ind + 1]
+            md_links.append(Markdown_Link("", url[1:-1]))
+            capturing_chevrons = False
+            starting_name = False
+        # For [name](url)
+        elif c == "[" and not starting_name:
             start_capture = ind
             starting_name = True
         elif (
             c == "]" and starting_name and ind + 1 < len(line) and line[ind + 1] == "("
         ):
             found_name = True
+            end_name = ind
         elif c == "(" and found_name:
             starting_url = True
         elif c == ")" and starting_url:
             end_capture = ind
-            md_links.append(line[start_capture : end_capture + 1])
+            name = line[start_capture : end_name + 1]
+            url = line[end_name + 1 : end_capture + 1]
+            md_links.append(Markdown_Link(name[1:-1], url[1:-1]))
             starting_name = False
             starting_url = False
             found_name = False
