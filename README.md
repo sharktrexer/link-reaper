@@ -8,11 +8,11 @@ Unlike other link verifiers, this one will make direct changes to your markdown 
 
 ## Temporary instructions:
 
-0. Have Python installed
-1. Download the link_reaper folder
-2. Open a terminal and change directory to inside that folder, where the .py files reside
+0. Have Python installed.
+1. Download the link_reaper package (folder) and place in an appropriate directory.
+2. Open a terminal and change directory to wherever the package is.
 3. Install requried dependencies (requests & Click)
-4. In terminal, call reaper.py reap [OPTIONS] [FILES], with the different options shown below.
+4. Use `python -m link_reaper.reaper reap yourfile.md` utilizing the many options [here](#Terminal)
 5. Enjoy your markdown file free of dead links!
 
 ## Future
@@ -37,12 +37,11 @@ Options:
   -id, --ignore_doppelgangers  Ignore duplicate links.
   -is, --ignore_ssl            Ignore links that result in SSL errors. Not
                                very secure so use with caution.
-  -it, --ignore_timeouts       Ignore links that time out.
   -iu, --ignore_urls TEXT      Ignores specific links you want to whitelist.
-                               Use this option for each url.
-  -rs, --reap_status INTEGER   Status codes you want to be reaped (404 and
-                               300s are default). Use this option per each
-                               code.
+                               Enter each url comma separated.
+  -rs, --reap_status TEXT      Status codes you want to be reaped (404, 500,
+                               521 and 300s are default).Enter each code comma
+                               separated.
   -p, --patience INTEGER       Max # of seconds to wait for url to to send
                                data.
   --help                       Show this message and exit.
