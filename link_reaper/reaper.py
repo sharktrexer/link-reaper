@@ -36,56 +36,68 @@ def link_reaper():
 
 # TODO: add verbose(?) mode that explains more about what is happening
 # TODO: let user know what options they used? Like if merciful then print "not overwriting files"
+# TODO: command explaining default functionality
 @link_reaper.command(context_settings={"ignore_unknown_options": True})
+# CREATE AFTERLIFE CONTAINING REAPED LINKS
 @click.option(
     "-s",
     "--show_afterlife",
     is_flag=True,
     help="Create an afterlife-filename.md for each checked file that only contains the reaped links.",
 )
+# DONT OVERWRITE
 @click.option(
     "-m",
     "--merciful",
     is_flag=True,
     help="Instead of overwriting files, create a reaped-filename.md for each checked file that contains applied changes.",
 )
+# IGNORE REDIRECTION UPDATES
 @click.option("-ig", "--ignore_ghosts", is_flag=True, help="Ignore redirect links.")
+# IGNORE DUPLICATES
 @click.option(
     "-id", "--ignore_doppelgangers", is_flag=True, help="Ignore duplicate links."
 )
+# IGNORE SSL
 @click.option(
     "-is",
     "--ignore_ssl",
     is_flag=True,
     help="Ignore links that result in SSL errors. Not very secure so use with caution.",
 )
+# IGNORE TIMEOUTS
 @click.option(
     "-it", "--ignore_timeouts", is_flag=True, help="Ignore links that time out."
 )
+# IGNORE LIST OF URLS
 @click.option(
     "-iu",
     "--ignore_urls",
-    multiple=True,
     type=str,
-    help="Ignores specific links you want to whitelist. Use this option for each url.",
+    default="",
+    help="Ignores specific links you want to whitelist. Enter each url comma separated.",
 )
+# REAP LIST OF STATUS CODES
 @click.option(
     "-rs",
     "--reap_status",
-    multiple=True,
-    type=int,
-    help="Status codes you want to be reaped (404 and 300s are default). Use this option per each code.",
+    type=str,
+    default="",
+    help=("Status codes you want to be reaped (404, 500, 521 and 300s are default)." 
+          "Enter each code comma separated."),
 )
+# TIMEOUT
 @click.option(
     "-p",
     "--patience",
     default=15,
     help="Max # of seconds to wait for url to to send data.",
 )
-# @click.option('-g', '--guides', type=click.Path(exists=True), multiple=True, help="Files containing links that will only be checked in the. Can apply to multiple files, or per each file")
+# FILE(S)
 @click.argument("files", nargs=-1, type=click.Path(exists=True))
+# REAPER
 def reap(
-    files,  # guides,
+    files,  
     show_afterlife,
     merciful,
     ignore_ghosts,
@@ -98,17 +110,18 @@ def reap(
 ):
     """Command that reaps links from markdown files based on your options"""
     if not files:
-        raise click.BadParameter("No files provided")
-
-    # if guides and len(guides) > 1 and len(files) != len(guides):
-    #     raise click.BadParameter('Number of guides must match the number of files,'
-    #                              'or only one guide should be provided')
+        raise click.BadParameter("No file(s) provided")
 
     if ignore_ssl:
         click.echo("\nWarning: ignoring SSL errors. Use with caution.")
 
+    # Transform multiple options into lists
+    ignore_urls = ignore_urls.replace(" ", "").split(",")
+    reap_status = reap_status.replace(" ", "").split(",")
+    
+
     link_collector.collect_links(
-        files,  # guides=guides,
+        files, 
         overwrite=not merciful,
         do_ignore_copies=ignore_doppelgangers,
         do_ignore_redirect=ignore_ghosts,
