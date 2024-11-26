@@ -22,7 +22,9 @@ Planning on packaging this project with SetupTools to be used without needing a 
 
 ## Terminal
 ```
-Usage: reaper.py reap [OPTIONS] [FILES]...
+Usage: python -m link_reaper.reaper reap [OPTIONS] [FILES]...
+
+  Command that reaps links from markdown files based on your options
 
 Options:
   -s, --show_afterlife         Create an afterlife-filename.md for each
@@ -35,7 +37,7 @@ Options:
   -id, --ignore_doppelgangers  Ignore duplicate links.
   -is, --ignore_ssl            Ignore links that result in SSL errors. Not
                                very secure so use with caution.
-  -rt, --reap_timeouts         Reap links that time out.
+  -it, --ignore_timeouts       Ignore links that time out.
   -iu, --ignore_urls TEXT      Ignores specific links you want to whitelist.
                                Use this option for each url.
   -rs, --reap_status INTEGER   Status codes you want to be reaped (404 and
@@ -43,7 +45,6 @@ Options:
                                code.
   -p, --patience INTEGER       Max # of seconds to wait for url to to send
                                data.
-  -g, --guides PATH
   --help                       Show this message and exit.
 ```
 
