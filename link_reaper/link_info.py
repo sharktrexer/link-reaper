@@ -1,4 +1,6 @@
-# Stores useful information about a link
+"""Stores useful information about a link"""
+
+
 class Link:
     def __init__(
         self,
@@ -30,9 +32,9 @@ class Link:
                 + f"{url_history} | "
                 + f"{self.note}"
             )
-        else:
-            return (
-                f"Line {self.file_line}, Status {self.status} | "
-                f"{self.url} | "
-                f"{self.note}"
-            )
+
+        return (
+            f"Line {self.file_line}, Status {self.status} | "
+            f"{self.url} | "
+            f"{self.note}"
+        )

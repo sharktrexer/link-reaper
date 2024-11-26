@@ -1,11 +1,12 @@
-# checks links in markdown files and prints results
+"""checks links in markdown files and prints results"""
+
 import re
 import os
 import requests
 import click.utils
 import urllib3
 
-from link import Link
+from . import link_info
 from urllib.parse import urlparse, urlsplit, urlunsplit
 from requests.exceptions import ConnectionError, Timeout, ConnectTimeout
 
@@ -31,8 +32,6 @@ LINK_URL_RE = re.compile(r"\((.*?)\)")
 ALT_LINK_URL_RE = re.compile(r"\<(.*?)\>")
 
 
-# grab github readme links as a list of tuple strings
-# (line_num, name, url, status_code, reason)
 def collect_links(
     files,
     directory: str = "",
@@ -47,6 +46,7 @@ def collect_links(
     ignore_timeouts=False,
     max_timeout=15,
 ):
+    """Checks all links in markdown files and reaps them depending on options."""
     if not directory:
         directory = os.getcwd() + "\\"
 
@@ -106,7 +106,7 @@ def collect_links(
                     click.echo("Ignored as specified")
                     continue
 
-                cur_link = Link(line_num, link_name, raw_url, history=[])
+                cur_link = link_info.Link(line_num, link_name, raw_url, history=[])
 
                 # deal with duplicate links
                 is_dupe = False
@@ -148,11 +148,13 @@ def collect_links(
                 if cur_link.result == "Reaped":
                     undead_links.append(cur_link)
                     continue
-                elif cur_link.result == "Logged":
+
+                if cur_link.result == "Logged":
                     file_log.append(cur_link)
                     reap_file.write(line)
                     continue
-                elif cur_link.result == "All Good":
+
+                if cur_link.result == "All Good":
                     # If redirect occured, update the link
                     if cur_link.history:
                         new_line = line.replace(raw_url, cur_link.url)
@@ -177,12 +179,12 @@ def collect_links(
         if do_show_afterlife:
             with open(afterlife_file_path, "w", encoding="utf-8") as afterlife_file:
                 for link in undead_links:
-                    afterlife_file.write(link.__str__() + "\n")
+                    afterlife_file.write(str(link) + "\n")
 
         # Write log to log-filename.md
         with open(log_file_path, "w", encoding="utf-8") as log_file:
             for link in file_log:
-                log_file.write(link.__str__() + "\n\n")
+                log_file.write(str(link) + "\n\n")
 
         # Replace
         if overwrite:
@@ -200,14 +202,8 @@ def collect_links(
         print("Other link results in ", log_file_path, " for additional info")
 
 
-# checks line for markdown link matches
-"""
-[name](url)
-<url>
-"""
-
-
 def find_markdown_link(line):
+    """Uses regex to find markdown link [name](url) or <url>"""
     md_link = LINK_RE.search(line)
 
     # if [name](url) doesn't match, try <url>
@@ -220,24 +216,25 @@ def find_markdown_link(line):
         raw_url = md_link.group()[1:-1]
 
         return (link_name, raw_url)
-    else:
-        # separating [name] and (url)
-        link_name = LINK_NAME_RE.search(md_link.group())
-        link_url = LINK_URL_RE.search(md_link.group())
 
-        # ensure regex match includes [name] and (url) and not something like [blah)
-        if link_name is None or link_url is None:
-            return None
+    # separating [name] and (url)
+    link_name = LINK_NAME_RE.search(md_link.group())
+    link_url = LINK_URL_RE.search(md_link.group())
 
-        # exclude brackets
-        link_name = link_name.group()[1:-1]
-        raw_url = link_url.group()[1:-1]
+    # ensure regex match includes [name] and (url) and not something like [blah)
+    if link_name is None or link_url is None:
+        return None
 
-        return (link_name, raw_url)
+    # exclude brackets
+    link_name = link_name.group()[1:-1]
+    raw_url = link_url.group()[1:-1]
+
+    return (link_name, raw_url)
 
 
 # if url has a scheme it is valid
 def check_url_validity(url):
+    """Uses urlparse to check for valid url string"""
     try:
         parsed_url = urlparse(url)
         if not parsed_url.scheme:
@@ -249,19 +246,20 @@ def check_url_validity(url):
 
 
 def obtain_request(
-    link: Link,
+    link: link_info.Link,
     do_verify: bool,
     ignore_timeouts: bool,
     max_timeout: int,
     do_ignore_redirect: bool,
     reap_codes: list,
 ):
+    """Tests links for responses in respect to cli options"""
     # Loop for as many times are there are redirects
     while True:
         # print("checking: ", link.url)
         # print("Current history: ", link.history)
         # print("Link: ", link)
-        # Testing links responses in respect to cli options
+
         try:
             req = requests.head(
                 link.url,
@@ -334,36 +332,35 @@ def obtain_request(
                 link.result = "Reaped"
 
             # Handling other codes
-            elif status >= 100 and status < 400 and not does_redirect:
+            elif 100 <= status < 400 and not does_redirect:
                 link.result = "All Good"
 
             elif status == 404:
                 link.note = "Does not exist"
                 link.result = "Reaped"
 
-            elif status >= 400 and status < 500:
+            elif 400 <= status < 500:
                 link.note = "Unauthorized Access"
                 link.result = "Logged"
 
-            elif status == 500 or status == 521:
+            elif status in (500, 521):
                 link.note = "Server Did Not Respond"
                 link.result = "Reaped"
 
-            elif status >= 501 and status < 600:
+            elif 501 <= status < 600:
                 link.note = "Server Error"
                 link.result = "Logged"
 
             return
 
 
-"""    
- Captures markdown links without use of regex
- Assumes url doesn't contain parenthesis, and is a markdown link [name](url)
- TODO: capture <url> as well
-"""
-
-
 def grab_md_links(line: str) -> list:
+    """
+    Captures markdown links without use of regex
+    Assumes url doesn't contain parenthesis, and is a markdown link [name](url)
+    TODO: capture <url> as well
+    """
+
     md_links = []
     start_capture = 0
     starting_name = False

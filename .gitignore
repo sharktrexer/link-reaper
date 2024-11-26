@@ -6,6 +6,9 @@
 # python
 __pycache__
 
+# ruff
+.ruff_cache
+
 # packaging
 *.egg-info/
 dist

@@ -1,8 +1,8 @@
-# shell commands
-import click
-import link_collector
+"""CLI for link_reaper"""
 
-PROMPT = "💀 "
+import click
+from link_reaper import link_collector
+
 INTRO = """ 
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣤⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⠞⢿⣧⠀⠀
@@ -30,6 +30,7 @@ INTRO = """
 
 @click.group(name="link_reaper")
 def link_reaper():
+    """Groups CLI commands under 'link_reaper' and prints intro text"""
     click.echo(INTRO)
 
 
@@ -95,6 +96,7 @@ def reap(
     ignore_timeouts,
     patience,
 ):
+    """Command that reaps links from markdown files based on your options"""
     if not files:
         raise click.BadParameter("No files provided")
 
