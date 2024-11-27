@@ -1,7 +1,10 @@
-"""Stores useful information about a link"""
+"""Contains the Link class"""
 
 
+# TODO: change from int to string to allow for 000 codes
 class Link:
+    """Stores useful information about a link"""
+
     def __init__(
         self,
         file_line: int,
@@ -38,3 +41,7 @@ class Link:
             f"{self.url} | "
             f"{self.note}"
         )
+
+    def get_as_md_form(self):
+        """Formats link back into markdown: [name](url)"""
+        return "[" + self.name + "](" + self.url + ")"

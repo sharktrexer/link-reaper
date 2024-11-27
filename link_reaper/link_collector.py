@@ -2,18 +2,22 @@
 
 import re
 import os
+
+from collections import namedtuple
+from urllib.parse import urlparse, urlsplit, urlunsplit
+
 import requests
 import click.utils
 import urllib3
 
 from . import link_info
-from collections import namedtuple
-from urllib.parse import urlparse, urlsplit, urlunsplit
-from requests.exceptions import ConnectionError, Timeout, ConnectTimeout
+from requests.exceptions import Timeout, ConnectTimeout
 
 # TODO: have some way to check if url is for sale and reap it so
 # TODO: check and handle multiple [name](url) in one line
-# perhaps enable ability to just check any links in entire file, not just markdown?
+# TODO: sort problamatic links by status code
+# TODO: simulate a browser for better url checking
+# TODO: add functionality to check for domains that are for sale or CNAME errors
 
 # Disable SSL warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -29,7 +33,8 @@ LINK_URL_RE = re.compile(r"\((.*?)\)")
 ALT_LINK_URL_RE = re.compile(r"\<(.*?)\>")
 
 # Named Tuple to store name and url of md links
-Markdown_Link = namedtuple("Markdown_Link", ["name", "url"])
+MarkdownLink = namedtuple("Markdown_Link", ["name", "url"])
+
 
 def collect_links(
     files,
@@ -73,28 +78,20 @@ def collect_links(
             click.echo("Processing " + file + "...\n")
 
             for line_num, line in enumerate(cur_file, start=1):
-                
                 # Grabbing all md links in the file line [name](url) or <url>
                 line_links = grab_md_links(line)
-                #print("Links: " + str(line_links))
 
-                # Trying to search for a markdown link
-                # either [name](url) or <url>
-                '''md_link = find_markdown_link(line)
-                if not md_link:
-                    reap_file.write(line)
-                    continue'''
-                
                 # ignore lines without possible markdown links
                 if not line_links:
                     reap_file.write(line)
                     continue
-                    
-                for md_link in line_links:
 
+                processed_line_links = []  # Track links that have been checked
+
+                for md_link in line_links:
                     link_name = md_link[0]
                     raw_url = md_link[1]
-                    
+
                     # validate that the captured "link" is actually a http url
                     if not check_url_validity(raw_url):
                         reap_file.write(line)
@@ -113,7 +110,10 @@ def collect_links(
                     # deal with duplicate links
                     is_dupe = False
                     for grabbed_link in file_urls:
-                        if raw_url == grabbed_link.url or raw_url in grabbed_link.history:
+                        if (
+                            raw_url == grabbed_link.url
+                            or raw_url in grabbed_link.history
+                        ):
                             cur_link.note = (
                                 "Doppelganger of "
                                 + grabbed_link.name
@@ -124,18 +124,20 @@ def collect_links(
                             is_dupe = True
                             break
 
-                    # keeps track of links seen
+                    # keeps track of valid links seen
                     file_urls.append(cur_link)
 
                     # Handle copies
                     if is_dupe:
                         if do_ignore_copies:
                             # Log copies just so user knows what has been ignored
-                            file_log.append(cur_link)
+                            cur_link.result = "Logged"
                         else:
                             # otherwise dupes are known as undead
-                            undead_links.append(cur_link)
+                            cur_link.result = "Reaped"
+
                         # dont need to evaluate duplicate urls
+                        processed_line_links.append(cur_link)
                         continue
 
                     obtain_request(
@@ -147,31 +149,68 @@ def collect_links(
                         reap_codes,
                     )
 
+                    processed_line_links.append(cur_link)
+
+                # Handle every md link in line
+                new_line = ""
+                reaped_links_num = 0
+                do_delete_line = False
+                for cur_link in processed_line_links:
                     if cur_link.result == "Reaped":
                         undead_links.append(cur_link)
-                        
+
+                        # If only one link in line, then line can be deleted
+                        if len(processed_line_links) == 1:
+                            do_delete_line = True
+                            continue
+
                         # If multiple links in a line, just remove the link
-                        if len(line_links) > 1:
-                            new_line = line.replace(raw_url, "")
-                            reap_file.write(new_line)
-                        
+                        # TODO: log or notify user this occured as it may create unintended issues
+                        if len(processed_line_links) > 1:
+                            reaped_links_num += 1
+                            new_line = line.replace(cur_link.get_as_md_form(), "")
+
+                            # If all links in line are reaped, then line can be deleted
+                            if reaped_links_num == len(processed_line_links):
+                                do_delete_line = True
+                                new_line = ""
+
                         continue
 
                     if cur_link.result == "Logged":
                         file_log.append(cur_link)
-                        reap_file.write(line)
                         continue
 
                     if cur_link.result == "All Good":
-                        # If redirect occured, update the link
+                        # If redirect occured, update the link, reap old one
                         if cur_link.history:
-                            new_line = line.replace(raw_url, cur_link.url)
-                            cur_link.status = cur_link.og_code
+                            if new_line:
+                                # Compound updates
+                                new_line = new_line.replace(
+                                    cur_link.history[0], cur_link.url
+                                )
+                            else:
+                                new_line = line.replace(
+                                    cur_link.history[0], cur_link.url
+                                )
+
+                            cur_link.status = (
+                                cur_link.og_code
+                            )  # Get code of original url
                             undead_links.append(cur_link)
-                            reap_file.write(new_line)
-                        else:
-                            reap_file.write(line)
+
                         continue
+
+                # Modifying Line
+                if new_line:
+                    reap_file.write(new_line.strip() + "\n")
+                    print("LINE MODIFIED")
+                elif do_delete_line:
+                    print("LINE DELETED")
+                else:
+                    reap_file.write(line)
+                    print("LINE UNCHANGED")
+                # End Of Line
             # EOF
 
         click.echo(
@@ -281,11 +320,11 @@ def obtain_request(
                 link.note = "Url Timed Out: " + str(e)
                 link.result = "Logged"
                 return
-            else:
-                link.note = str(e)
-                link.result = "Reaped"
-                return
-        
+
+            link.note = str(e)
+            link.result = "Reaped"
+            return
+
         # Handling connection errors and connection timeouts
         # TODO: make error msg prettier
         except (ConnectionError, ConnectTimeout) as e:
@@ -330,36 +369,34 @@ def obtain_request(
             link.url = url_after_redirect
             link.note = "Updated to most current redirect"
             continue
-        else:
-            status = link.status
-            # Handle status codes that user wants reaped
-            if str(status) in reap_codes:
-                link.note += (
-                    " This link responded with a status code that you want reaped"
-                )
-                link.result = "Reaped"
 
-            # Handling other codes
-            elif 100 <= status < 400 and not does_redirect:
-                link.result = "All Good"
+        status = link.status
+        # Handle status codes that user wants reaped
+        if str(status) in reap_codes:
+            link.note += " This link responded with a status code that you want reaped"
+            link.result = "Reaped"
 
-            elif status == 404:
-                link.note = "Does not exist"
-                link.result = "Reaped"
+        # Handling other codes
+        elif 100 <= status < 400 and not does_redirect:
+            link.result = "All Good"
 
-            elif 400 <= status < 500:
-                link.note = "Unauthorized Access"
-                link.result = "Logged"
+        elif status == 404:
+            link.note = "Does not exist"
+            link.result = "Reaped"
 
-            elif status in (500, 521):
-                link.note = "Server Could Not Handle Request"
-                link.result = "Reaped"
+        elif 400 <= status < 500:
+            link.note = "Unauthorized Access"
+            link.result = "Logged"
 
-            elif 501 <= status < 600:
-                link.note = "Unknown Server Error"
-                link.result = "Logged"
+        elif status in (500, 521):
+            link.note = "Server Could Not Handle Request"
+            link.result = "Reaped"
 
-            return
+        elif 501 <= status < 600:
+            link.note = "Unknown Server Error"
+            link.result = "Logged"
+
+        return
 
 
 def grab_md_links(line: str) -> list:
@@ -385,14 +422,16 @@ def grab_md_links(line: str) -> list:
             starting_name = True
         elif c == ">" and capturing_chevrons:
             url = line[start_capture : ind + 1]
-            md_links.append(Markdown_Link("", url[1:-1]))
+            # Ignore brackets
+            md_links.append(MarkdownLink("", url[1:-1]))
+            # Reset
             capturing_chevrons = False
             starting_name = False
         # For [name](url)
         elif c == "[" and not starting_name:
             start_capture = ind
             starting_name = True
-        elif (
+        elif (  # Assume [name] if [name]( which assumes [name](url)
             c == "]" and starting_name and ind + 1 < len(line) and line[ind + 1] == "("
         ):
             found_name = True
@@ -401,9 +440,11 @@ def grab_md_links(line: str) -> list:
             starting_url = True
         elif c == ")" and starting_url:
             end_capture = ind
+            # Capture vars without brackets
             name = line[start_capture : end_name + 1]
             url = line[end_name + 1 : end_capture + 1]
-            md_links.append(Markdown_Link(name[1:-1], url[1:-1]))
+            md_links.append(MarkdownLink(name[1:-1], url[1:-1]))
+            # Reset
             starting_name = False
             starting_url = False
             found_name = False

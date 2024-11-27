@@ -50,7 +50,10 @@ def link_reaper():
     "-m",
     "--merciful",
     is_flag=True,
-    help="Instead of overwriting files, create a reaped-filename.md for each checked file that contains applied changes.",
+    help=(
+        "Instead of overwriting files, create a reaped-filename.md for each checked file "
+        "that contains applied changes."
+    ),
 )
 # IGNORE REDIRECTION UPDATES
 @click.option("-ig", "--ignore_ghosts", is_flag=True, help="Ignore redirect links.")
@@ -75,7 +78,10 @@ def link_reaper():
     "--ignore_urls",
     type=str,
     default="",
-    help="Ignores specific links you want to whitelist. Enter each url comma separated.",
+    help=(
+        "Ignores specific links you want to whitelist."
+        "Enter each url comma separated."
+    ),
 )
 # REAP LIST OF STATUS CODES
 @click.option(
@@ -83,8 +89,10 @@ def link_reaper():
     "--reap_status",
     type=str,
     default="",
-    help=("Status codes you want to be reaped (404, 500, 521 and 300s are default)." 
-          "Enter each code comma separated."),
+    help=(
+        "Status codes you want to be reaped (404, 500, 521 and 300s are default)."
+        "Enter each code comma separated."
+    ),
 )
 # TIMEOUT
 @click.option(
@@ -97,7 +105,7 @@ def link_reaper():
 @click.argument("files", nargs=-1, type=click.Path(exists=True))
 # REAPER
 def reap(
-    files,  
+    files,
     show_afterlife,
     merciful,
     ignore_ghosts,
@@ -118,10 +126,9 @@ def reap(
     # Transform multiple options into lists
     ignore_urls = ignore_urls.replace(" ", "").split(",")
     reap_status = reap_status.replace(" ", "").split(",")
-    
 
     link_collector.collect_links(
-        files, 
+        files,
         overwrite=not merciful,
         do_ignore_copies=ignore_doppelgangers,
         do_ignore_redirect=ignore_ghosts,
