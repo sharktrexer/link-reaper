@@ -6,14 +6,32 @@ Unlike other link verifiers, this one will make direct changes to your markdown 
 
 # Installation
 
-## Temporary instructions:
+## For personal usage
+
+Here are a couple options for those who simply want to use the project.
+
+### As an installed Package:
+
+TBD
+
+### Clone Repo:
 
 0. Have Python installed.
-1. Download the link_reaper package (folder) and place in an appropriate directory.
-2. Open a terminal and change directory to wherever the package is.
-3. Install requried dependencies (requests & Click)
+1. Find/create your directory of choice
+2. Open a terminal in that directory and use `git clone https://github.com/sharktrexer/link-reaper.git`
+3. Install requried dependencies (pip install requests & Click)
 4. Use `python -m link_reaper.reaper reap yourfile.md` utilizing the many options [here](#Terminal)
 5. Enjoy your markdown file free of dead links!
+
+### Using Pip Install:
+
+TBD
+
+## For Developers
+
+These options allow for those who want to contribute or mess around with the code.
+
+TBD
 
 ## Future
 Planning on packaging this project with SetupTools to be used without needing a venv or python installed.
@@ -54,3 +72,7 @@ TODO
 ## GitHub Actions
 
 GitHub Action functionality currently in production.
+
+## Docker
+
+Docker functionality in progress.
