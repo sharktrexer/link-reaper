@@ -1,5 +1,6 @@
 """Contains the Link class"""
 
+
 class Link:
     """Stores useful information about a link"""
 

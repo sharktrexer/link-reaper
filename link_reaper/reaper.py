@@ -33,6 +33,7 @@ def link_reaper():
     """Groups CLI commands under 'link_reaper' and prints intro text"""
     click.echo(INTRO)
 
+
 @link_reaper.command(context_settings={"ignore_unknown_options": True})
 # CREATE AFTERLIFE CONTAINING REAPED LINKS
 @click.option(

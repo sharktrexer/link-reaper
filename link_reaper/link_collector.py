@@ -242,7 +242,7 @@ def collect_links(
 
 
 def find_markdown_link(line):
-    """Uses regex to find markdown link [name](url) or <url>"""
+    """Uses regex to find markdown link [name](url) or <url> DEPRECATED"""
     md_link = LINK_RE.search(line)
 
     # if [name](url) doesn't match, try <url>
