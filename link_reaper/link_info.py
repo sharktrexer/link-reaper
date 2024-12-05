@@ -1,7 +1,5 @@
 """Contains the Link class"""
 
-
-# TODO: change from int to string to allow for 000 codes
 class Link:
     """Stores useful information about a link"""
 

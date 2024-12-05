@@ -33,10 +33,6 @@ def link_reaper():
     """Groups CLI commands under 'link_reaper' and prints intro text"""
     click.echo(INTRO)
 
-
-# TODO: add verbose(?) mode that explains more about what is happening
-# TODO: let user know what options they used? Like if merciful then print "not overwriting files"
-# TODO: command explaining default functionality
 @link_reaper.command(context_settings={"ignore_unknown_options": True})
 # CREATE AFTERLIFE CONTAINING REAPED LINKS
 @click.option(

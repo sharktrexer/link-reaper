@@ -13,12 +13,6 @@ import urllib3
 from . import link_info
 from requests.exceptions import Timeout, ConnectTimeout
 
-# TODO: have some way to check if url is for sale and reap it so
-# TODO: check and handle multiple [name](url) in one line
-# TODO: sort problamatic links by status code
-# TODO: simulate a browser for better url checking
-# TODO: add functionality to check for domains that are for sale or CNAME errors
-
 # Disable SSL warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -70,7 +64,6 @@ def collect_links(
         undead_links = []
         file_log = []
 
-        # TODO: better feedback for user when processing links
         with (
             open(file, "r", encoding="utf-8") as cur_file,
             open(reap_file_path, "w", encoding="utf-8") as reap_file,
@@ -165,7 +158,6 @@ def collect_links(
                             continue
 
                         # If multiple links in a line, just remove the link
-                        # TODO: log or notify user this occured as it may create unintended issues
                         if len(processed_line_links) > 1:
                             reaped_links_num += 1
                             new_line = line.replace(cur_link.get_as_md_form(), "")
@@ -326,7 +318,6 @@ def obtain_request(
             return
 
         # Handling connection errors and connection timeouts
-        # TODO: make error msg prettier
         except (ConnectionError, ConnectTimeout) as e:
             link.note = str(e)
             link.result = "Reaped"
