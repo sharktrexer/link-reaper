@@ -1,24 +1,16 @@
+import pytest
+
 from link_reaper import link_collector
 
+@pytest.mark.parametrize("str, expected_length", [
+    ("[test](https://test.com)", 1), 
+    ("<https://test.com>", 1),
+    ("[i](i)", 1),
+    ("[invalid(http://test.com)", 0),
+    ("[i]http://test.com)", 0),
+    ("i]http://test.com)", 0),
+    ("http://test.com", 0)
+])
+def test_markdown_link_formats(str, expected_length):
 
-def test_valid_markdown_link_formats():
-    valid_links = []
-    valid_links.append("[test](https://test.com)")
-    valid_links.append("<https://test.com>")
-    valid_links.append("[i](i)")
-    for link in valid_links:
-        assert len(link_collector.grab_md_links(link))
-
-
-test_valid_markdown_link_formats()
-
-
-def test_invalid_markdown_link_formats():
-    invalid_links = []
-    invalid_links.append("[invalid(http://test.com)")
-    invalid_links.append("[i]http://test.com)")
-    invalid_links.append("i]http://test.com)")
-    invalid_links.append("http://test.com")
-
-    for link in invalid_links:
-        assert not link_collector.grab_md_links(link)
+    assert len(link_collector.grab_md_links(str)) == expected_length
