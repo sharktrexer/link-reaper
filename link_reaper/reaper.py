@@ -3,6 +3,7 @@
 import click
 from . import link_collector
 
+# pylint: disable=trailing-whitespace, line-too-long, anomalous-backslash-in-string
 INTRO = """ 
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣤⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⠞⢿⣧⠀⠀
@@ -27,6 +28,7 @@ INTRO = """
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣦⣄⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠿⠛⠃"""  # noqa: E501
 
+# pylint: enable=trailing-whitespace, line-too-long, anomalous-backslash-in-string
 
 @click.group(name="link_reaper")
 def link_reaper():
