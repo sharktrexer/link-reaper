@@ -12,31 +12,47 @@ Here are a couple options for those who simply want to use the project.
 
 ### As an installed Package:
 
-TBD
-
-### Clone Repo:
-
-0. Have Python installed.
-1. Find/create your directory of choice
-2. Open a terminal in that directory and use `git clone https://github.com/sharktrexer/link-reaper.git`
-3. Install requried dependencies (pip install requests & Click)
-4. Use `python -m link_reaper.reaper reap yourfile.md` utilizing the many options [here](#Terminal)
-5. Enjoy your markdown file free of dead links!
+TBD - for downloaded the package folder
 
 ### Using Pip Install:
 
-TBD
+TBD - for downlaoding from PyPI
 
 ## For Developers
 
-These options allow for those who want to contribute or mess around with the code.
+### Instructions
+0. Have [Python](https://www.python.org/downloads/) installed.
+1. Fork this repo (if you want to contribute. If not, skip this step)
+2. Find/create your directory of choice
+3. Open a terminal in that directory and use `git clone https://github.com/sharktrexer/<your fork name here>.git` but if you are not using a fork, just use `https://github.com/sharktrexer/link-reaper.git`
+4. Create a virtual environment `python3 -m venv venv` 
+5. Install requried dependencies `pip install -r requirements.txt` or if you intend to contribute, `pip install -r requirements_dev.txt`
+6. Use `python -m link_reaper.reaper reap yourfile.md` utilizing the many options [here](#Terminal) to test or play around with the project.
+7. If your contributing, follow the steps below
 
-TBD
+### Contributing
 
-## Future
-Planning on packaging this project with SetupTools to be used without needing a venv or python installed.
+Feel free to create Issues or Pull Requests at your leisure. If you are unsure if the PR is a good idea, create an Issue first and I will respond as best as I can.
+
+Before creating a pull request, be sure to use the following commands after implementing your changes (and make sure you installed dependencies from dev_requirements.txt):
+```
+# Lint code
+ruff check link-reaper
+
+# Apply lint fixes (you may have to do some manually)
+ruff check --fix
+
+# Format changes
+ruff format link-reaper
+
+#Optional for bonus points
+pylint link-reaper
+```
+If you don't use the ruff commands, the workflow of this project will fail and it will take longer to merge your potentially beautiful changes!
 
 # Usage
+
+Here are the many ways you can utilize this python package.
 
 ## Terminal
 ```
@@ -67,7 +83,7 @@ Options:
 
 ## Examples
 
-TODO
+TODO 
 
 ## GitHub Actions
 
