@@ -12,6 +12,7 @@ __pycache__
 # packaging
 *.egg-info/
 dist
+.pypirc
 
 # private testing folder
 test
