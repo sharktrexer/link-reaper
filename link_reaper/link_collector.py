@@ -8,10 +8,10 @@ from urllib.parse import urlparse, urlsplit, urlunsplit
 
 import requests
 import click.utils
-import urllib3
 
 from . import link_info
 from requests.exceptions import Timeout, ConnectTimeout
+from requests.packages import urllib3
 
 # Disable SSL warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
