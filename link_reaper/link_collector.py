@@ -31,6 +31,7 @@ MarkdownLink = namedtuple("Markdown_Link", ["name", "url"])
 
 
 def collect_links(
+    *,
     files,
     directory: str = "",
     reap_codes: list = [],
@@ -41,6 +42,7 @@ def collect_links(
     do_show_afterlife=False,
     overwrite=True,
     ignore_timeouts=False,
+    dont_log=False,
     max_timeout=15,
 ):
     """Checks all links in markdown files and reaps them depending on options."""
@@ -205,8 +207,14 @@ def collect_links(
                 # End Of Line
             # EOF
 
+        reap_msg = "\nReaped/Updated "
+
+        # Change wording if using a "check" mode
+        if dont_log and not do_show_afterlife:
+            reap_msg = "\nPotentially could reap/update "
+
         click.echo(
-            "\nReaped/Updated "
+            reap_msg
             + str(len(undead_links))
             + "/"
             + str(len(file_urls))
@@ -221,24 +229,24 @@ def collect_links(
                     afterlife_file.write(str(link) + "\n")
 
         # Write log to log-filename.md
-        with open(log_file_path, "w", encoding="utf-8") as log_file:
-            for link in file_log:
-                log_file.write(str(link) + "\n\n")
+        if not dont_log:
+            with open(log_file_path, "w", encoding="utf-8") as log_file:
+                for link in file_log:
+                    log_file.write(str(link) + "\n\n")
 
         # Replace
         if overwrite:
             os.replace(reap_file_path, file)
-
-        # Print results
-        # print("Found links in: ", file)
-        # for url in file_urls:
-        #    click.echo("Line "+ str(url.file_line) + " | " + url.link_name +" " + url.link_url)
+        # Don't keep reap file if logging is disabled   
+        elif dont_log:
+            os.remove(reap_file_path) 
 
         print("\nProblematic links in: ", file)
         for url in undead_links:
             click.echo(url)
 
-        print("Other link results in ", log_file_path, " for additional info")
+        if not dont_log:
+            print("Other link results in ", log_file_path, " for additional info")
 
 
 def find_markdown_link(line):
@@ -364,7 +372,7 @@ def obtain_request(
         status = link.status
         # Handle status codes that user wants reaped
         if str(status) in reap_codes:
-            link.note += " This link responded with a status code that you want reaped"
+            link.note += " Responded with a status code that you want reaped"
             link.result = "Reaped"
 
         # Handling other codes

@@ -67,17 +67,20 @@ Options:
   -m, --merciful               Instead of overwriting files, create a reaped-
                                filename.md for each checked file that contains
                                applied changes.
-  -ig, --ignore_ghosts         Ignore redirect links.
+  -ig, --ignore_ghosts         Prevents updating redirecting links.
   -id, --ignore_doppelgangers  Ignore duplicate links.
-  -is, --ignore_ssl            Ignore links that result in SSL errors. Not
-                               very secure so use with caution.
-  -iu, --ignore_urls TEXT      Ignores specific links you want to whitelist.
-                               Enter each url comma separated.
-  -rs, --reap_status TEXT      Status codes you want to be reaped (404, 500,
-                               521 and 300s are default).Enter each code comma
-                               separated.
-  -p, --patience INTEGER       Max # of seconds to wait for url to to send
-                               data.
+  -is, --ignore_ssl            Disable SSL errors. Not very secure so use with
+                               caution.
+  -it, --ignore_timeouts       Ignore links that time out.
+  -iu, --ignore_urls TEXT      Ignores specific links you want to
+                               whitelist.Enter each url comma separated.
+  -rs, --reap_status TEXT      Status codes you want to be reaped (By default
+                               404, 500, 521 are reaped and 300s are
+                               updated).Enter each code comma separated.
+  -p, --patience INTEGER       Max # of seconds to wait for url to send data
+                               until it times out.
+  -dl, --disable_logging       Prevents creation of any log type files (does
+                               not overwrite -show-afterlife)
   --help                       Show this message and exit.
 ```
 

@@ -55,7 +55,7 @@ def link_reaper():
     ),
 )
 # IGNORE REDIRECTION UPDATES
-@click.option("-ig", "--ignore_ghosts", is_flag=True, help="Ignore redirect links.")
+@click.option("-ig", "--ignore_ghosts", is_flag=True, help="Prevents updating redirecting links.")
 # IGNORE DUPLICATES
 @click.option(
     "-id", "--ignore_doppelgangers", is_flag=True, help="Ignore duplicate links."
@@ -65,7 +65,7 @@ def link_reaper():
     "-is",
     "--ignore_ssl",
     is_flag=True,
-    help="Ignore links that result in SSL errors. Not very secure so use with caution.",
+    help="Ignore SSL errors. Not very secure so use with caution.",
 )
 # IGNORE TIMEOUTS
 @click.option(
@@ -89,7 +89,7 @@ def link_reaper():
     type=str,
     default="",
     help=(
-        "Status codes you want to be reaped (404, 500, 521 and 300s are default)."
+        "Status codes you want to be reaped (By default 404, 500, 521 are reaped and 300s are updated)."
         "Enter each code comma separated."
     ),
 )
@@ -97,8 +97,15 @@ def link_reaper():
 @click.option(
     "-p",
     "--patience",
-    default=15,
-    help="Max # of seconds to wait for url to to send data.",
+    default=20,
+    help="Max # of seconds to wait for url to send data until it times out.",
+)
+# STOP LOGGING INTO FILES
+@click.option(
+    "-dl",
+    "--disable_logging",
+    is_flag=True,
+    help="Prevents creation of any log type files (does not overwrite -show-afterlife)",
 )
 # FILE(S)
 @click.argument("files", nargs=-1, type=click.Path(exists=True))
@@ -114,6 +121,7 @@ def reap(
     ignore_ssl,
     ignore_timeouts,
     patience,
+    disable_logging,
 ):
     """Command that reaps links from markdown files based on your options"""
     if not files:
@@ -127,7 +135,7 @@ def reap(
     reap_status = reap_status.replace(" ", "").split(",")
 
     link_collector.collect_links(
-        files,
+        files=files,
         overwrite=not merciful,
         do_ignore_copies=ignore_doppelgangers,
         do_ignore_redirect=ignore_ghosts,
@@ -137,6 +145,7 @@ def reap(
         do_ignore_ssl=ignore_ssl,
         ignore_timeouts=ignore_timeouts,
         max_timeout=patience,
+        dont_log=disable_logging,
     )
 
 
