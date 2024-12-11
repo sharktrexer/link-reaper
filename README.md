@@ -72,11 +72,11 @@ Options:
   -is, --ignore_ssl            Disable SSL errors. Not very secure so use with
                                caution.
   -it, --ignore_timeouts       Ignore links that time out.
-  -iu, --ignore_urls TEXT      Ignores specific links you want to
-                               whitelist.Enter each url comma separated.
+  -iu, --ignore_urls TEXT      Ignores specific links you want to whitelist.
+                               Enter each url comma separated.
   -rs, --reap_status TEXT      Status codes you want to be reaped (By default
-                               404, 500, 521 are reaped and 300s are
-                               updated).Enter each code comma separated.
+                               404, 500, 521 are reaped and 300s are updated).
+                               Enter each code comma separated.
   -p, --patience INTEGER       Max # of seconds to wait for url to send data
                                until it times out.
   -dl, --disable_logging       Prevents creation of any log type files (does

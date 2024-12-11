@@ -237,9 +237,9 @@ def collect_links(
         # Replace
         if overwrite:
             os.replace(reap_file_path, file)
-        # Don't keep reap file if logging is disabled   
+        # Don't keep reap file if logging is disabled
         elif dont_log:
-            os.remove(reap_file_path) 
+            os.remove(reap_file_path)
 
         print("\nProblematic links in: ", file)
         for url in undead_links:
@@ -412,6 +412,10 @@ def grab_md_links(line: str) -> list:
     end_name = 0
     starting_url = False
     end_capture = 0
+
+    # capture = []
+
+    # for c in line:
 
     for ind, c in enumerate(line):
         # For <url>

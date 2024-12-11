@@ -55,7 +55,9 @@ def link_reaper():
     ),
 )
 # IGNORE REDIRECTION UPDATES
-@click.option("-ig", "--ignore_ghosts", is_flag=True, help="Prevents updating redirecting links.")
+@click.option(
+    "-ig", "--ignore_ghosts", is_flag=True, help="Prevents updating redirecting links."
+)
 # IGNORE DUPLICATES
 @click.option(
     "-id", "--ignore_doppelgangers", is_flag=True, help="Ignore duplicate links."
@@ -65,7 +67,7 @@ def link_reaper():
     "-is",
     "--ignore_ssl",
     is_flag=True,
-    help="Ignore SSL errors. Not very secure so use with caution.",
+    help="Disable SSL errors. Not very secure so use with caution.",
 )
 # IGNORE TIMEOUTS
 @click.option(
@@ -79,7 +81,7 @@ def link_reaper():
     default="",
     help=(
         "Ignores specific links you want to whitelist."
-        "Enter each url comma separated."
+        " Enter each url comma separated."
     ),
 )
 # REAP LIST OF STATUS CODES
@@ -90,7 +92,7 @@ def link_reaper():
     default="",
     help=(
         "Status codes you want to be reaped (By default 404, 500, 521 are reaped and 300s are updated)."
-        "Enter each code comma separated."
+        " Enter each code comma separated."
     ),
 )
 # TIMEOUT
