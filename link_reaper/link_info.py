@@ -1,4 +1,4 @@
-"""Contains the Link class"""
+"""Contains Link related classes"""
 
 
 class Link:
@@ -44,3 +44,35 @@ class Link:
     def get_as_md_form(self):
         """Formats link back into markdown: [name](url)"""
         return "[" + self.name + "](" + self.url + ")"
+
+
+class LinkHolder:
+    """Stores processed Links and provides helper functions"""
+    
+    def __init__(self,
+                 reaped_links: list,
+                 logged_links: list,
+                 found_links: list,):
+        
+        self.reaped_links = reaped_links
+        self.logged_links = logged_links
+        self.found_links = found_links
+        
+    def store_link(self, link: Link):
+        '''Stores link in appropriate list'''
+        if link.result == "Reaped":
+            self.reaped_links.append(link)
+            print('reaped')
+        elif link.result == "Logged":
+            self.logged_links.append(link)
+            print('logged')
+        else:
+            #print('found')
+            self.found_links.append(link)
+            
+    def check_if_dupe(self, link: Link):
+        '''Checks if link has already been found and returns the copy'''
+        for l in self.found_links:
+            if link.url == l.url or link.url in l.history:
+                return l
+        return None
