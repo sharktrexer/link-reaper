@@ -48,31 +48,32 @@ class Link:
 
 class LinkHolder:
     """Stores processed Links and provides helper functions"""
-    
-    def __init__(self,
-                 reaped_links: list,
-                 logged_links: list,
-                 found_links: list,):
-        
+
+    def __init__(
+        self,
+        reaped_links: list,
+        logged_links: list,
+        found_links: list,
+    ):
         self.reaped_links = reaped_links
         self.logged_links = logged_links
         self.found_links = found_links
-        
+
     def store_link(self, link: Link):
-        '''Stores link in appropriate list'''
-        if link.result == "Reaped":
+        """Stores link in appropriate list"""
+        if link.result == "Reaped" or link.result == "Updated":
             self.reaped_links.append(link)
-            print('reaped')
+            print("reaped")
         elif link.result == "Logged":
             self.logged_links.append(link)
-            print('logged')
-        else:
-            #print('found')
+            print("logged")
+        elif not link.result:
+            print("found")
             self.found_links.append(link)
-            
+
     def check_if_dupe(self, link: Link):
-        '''Checks if link has already been found and returns the copy'''
-        for l in self.found_links:
-            if link.url == l.url or link.url in l.history:
-                return l
+        """Checks if link has already been found and returns the copy"""
+        for found_link in self.found_links:
+            if link.url == found_link.url or link.url in found_link.history:
+                return found_link
         return None

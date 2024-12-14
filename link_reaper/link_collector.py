@@ -43,8 +43,8 @@ def collect_links(
     overwrite=True,
     ignore_timeouts=False,
     dont_log=False,
-    max_timeout=15, # This is overriden by cli option
-    verbose=False
+    max_timeout=15,  # This is overriden by cli option
+    verbose=False,
 ):
     """Checks all links in markdown files and reaps them depending on options."""
     if not directory:
@@ -63,9 +63,6 @@ def collect_links(
         log_file_path = directory + "log-" + file
         file = directory + file
 
-        file_urls = []
-        undead_links = []
-        file_log = []
         link_storage = link_info.LinkHolder([], [], [])
 
         with (
@@ -83,8 +80,6 @@ def collect_links(
                     reap_file.write(line)
                     continue
 
-                processed_line_links = []  # Track links that have been checked
-
                 for md_link in line_links:
                     link_name = md_link[0]
                     raw_url = md_link[1]
@@ -92,6 +87,7 @@ def collect_links(
                     # validate that the captured "link" is actually a http url
                     if not check_url_validity(raw_url):
                         reap_file.write(line)
+                        click.echo("Not a valid url in markdown link: " + raw_url)
                         continue
 
                     click.echo("Found " + raw_url)
@@ -104,9 +100,14 @@ def collect_links(
 
                     cur_link = link_info.Link(line_num, link_name, raw_url, history=[])
 
-                    # handle duplicate links
+                    # Check if link has already been found in past loop iteration
                     poss_dupe = link_storage.check_if_dupe(cur_link)
-                    if(poss_dupe):
+
+                    # track found, valid links
+                    link_storage.store_link(cur_link)
+
+                    # handle duplicate links
+                    if poss_dupe:
                         cur_link.note = (
                             "Doppelganger of "
                             + poss_dupe.name
@@ -114,105 +115,53 @@ def collect_links(
                             + str(poss_dupe.file_line)
                         )
                         cur_link.status = poss_dupe.status
-                        
+
                         if do_ignore_copies:
                             # Log copies just so user knows what has been ignored
                             cur_link.result = "Logged"
                         else:
                             # otherwise dupes are known as undead
                             cur_link.result = "Reaped"
+                    else:
+                        # Get requests of non dupe links
+                        obtain_request(
+                            cur_link,
+                            do_verify,
+                            ignore_timeouts,
+                            max_timeout,
+                            do_ignore_redirect,
+                            reap_codes,
+                        )
 
-                        # dont need to get request of duplicate urls
-                        # but still keep track of it
-                        link_storage.store_link(cur_link)
-                        continue
+                    # Handle the line based on link result
+                    if cur_link.history:
+                        # If redirect occured, update the link
+                        line = line.replace(cur_link.history[0], cur_link.url)
 
-                    # keeps track of valid links seen
+                        # Get code of original url
+                        cur_link.status = cur_link.og_code
+                        cur_link.result = "Updated"
+
+                    if cur_link.result != "Reaped":
+                        reap_file.write(line)
+
+                    # Store links into appropriate log/reap lists
                     link_storage.store_link(cur_link)
 
-                    obtain_request(
-                        cur_link,
-                        do_verify,
-                        ignore_timeouts,
-                        max_timeout,
-                        do_ignore_redirect,
-                        reap_codes,
-                    )
-
-                    processed_line_links.append(cur_link)
-
-                # Handle every md link in line
-                new_line = ""
-                reaped_links_num = 0
-                do_delete_line = False
-                for cur_link in processed_line_links:
-                    if cur_link.result == "Reaped":
-                        link_storage.store_link(cur_link)
-
-                        # If only one link in line, then line can be deleted
-                        if len(processed_line_links) == 1:
-                            do_delete_line = True
-                            continue
-
-                        # If multiple links in a line, just remove the link
-                        if len(processed_line_links) > 1:
-                            reaped_links_num += 1
-                            new_line = line.replace(cur_link.get_as_md_form(), "")
-
-                            # If all links in line are reaped, then line can be deleted
-                            if reaped_links_num == len(processed_line_links):
-                                do_delete_line = True
-                                new_line = ""
-
-                        continue
-
-                    if cur_link.result == "Logged":
-                        link_storage.store_link(cur_link)
-                        continue
-
-                    # If redirect occured, update the link, reap old one
-                    if cur_link.history:
-                        if new_line:
-                            # Compound updates
-                            new_line = new_line.replace(
-                                cur_link.history[0], cur_link.url
-                            )
-                        else:
-                            new_line = line.replace(
-                                cur_link.history[0], cur_link.url
-                            )
-
-                        cur_link.status = (
-                            cur_link.og_code
-                        )  # Get code of original url
-                        link_storage.store_link(cur_link)
-                        
-                # end of multi link loop
-                    
-                # Modifying Line
-                if new_line:
-                    reap_file.write(new_line.strip() + "\n")
-                    #print("LINE MODIFIED")
-                elif do_delete_line:
-                    #print("LINE DELETED")
-                    a = 2
-                else:
-                    reap_file.write(line)
-                    #print("LINE UNCHANGED")
                 # End Of Line
             # EOF
 
         reap_msg = "\nReaped/Updated "
 
         # Change wording if using a "check" mode
-        if dont_log and not do_show_afterlife and not overwrite:
+        if dont_log and not overwrite:
             reap_msg = "\nPotentially could reap/update "
 
         click.echo(
             reap_msg
-            + str(len(undead_links))
+            + str(len(link_storage.reaped_links))
             + "/"
-            + str(len(file_urls))
+            + str(len(link_storage.found_links))
             + " links in "
             + file
         )
@@ -223,8 +172,8 @@ def collect_links(
                 for link in link_storage.reaped_links:
                     afterlife_file.write(str(link) + "\n")
 
-        # Write log to log-filename.md
-        if not dont_log:
+        # Write log to log-filename.md if there is anything to log
+        if not dont_log and link_storage.logged_links:
             with open(log_file_path, "w", encoding="utf-8") as log_file:
                 for link in link_storage.logged_links:
                     log_file.write(str(link) + "\n\n")
@@ -240,8 +189,8 @@ def collect_links(
         for url in link_storage.reaped_links:
             click.echo(url)
 
-        if not dont_log:
-            print("Other link results in ", log_file_path, " for additional info")
+        if not dont_log and link_storage.logged_links:
+            click.echo("Other link results in ", log_file_path, " for additional info")
 
 
 def find_markdown_link(line):
@@ -345,7 +294,9 @@ def obtain_request(
         if does_redirect:
             if do_ignore_redirect:
                 # log ignored redirects
-                link.note = "This link is a ghost (outdated and requires a redirect update)"
+                link.note = (
+                    "This link is a ghost (outdated and requires a redirect update)"
+                )
                 link.result = "Logged"
                 return
 
@@ -362,6 +313,7 @@ def obtain_request(
             link.history.append(link.url)
             link.url = url_after_redirect
             link.note = "Updated to most current redirect"
+            # print("Updated to most current redirect")
             continue
 
         status = link.status
@@ -449,8 +401,9 @@ def grab_md_links(line: str) -> list:
 
     return md_links
 
+
 # Figure out what to do with links and the resulting new line
-'''
+"""
 def process_link(line: str, cur_link: link_info.Link):
     
     if cur_link.result == "Reaped":
@@ -493,4 +446,4 @@ def process_link(line: str, cur_link: link_info.Link):
             cur_link.og_code
         )  # Get code of original url
         undead_links.append(cur_link)
-'''
+"""
