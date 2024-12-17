@@ -12,11 +12,13 @@ Here are a couple options for those who simply want to use the project.
 
 ### As an installed Package:
 
-TBD - for downloaded the package folder
+TBD - for directly downloading the package folder
 
 ### Using Pip Install:
 
-TBD - for downlaoding from PyPI
+0. Have Python installed and the latest version of Pip
+1. Use `pip install the-link-reaper`
+2. See [here](#Terminal) for what you can do with this package.
 
 ## For Developers
 
@@ -24,7 +26,7 @@ TBD - for downlaoding from PyPI
 0. Have [Python](https://www.python.org/downloads/) installed.
 1. Fork this repo (if you want to contribute. If not, skip this step)
 2. Find/create your directory of choice
-3. Open a terminal in that directory and use `git clone https://github.com/sharktrexer/<your fork name here>.git` but if you are not using a fork, just use `https://github.com/sharktrexer/link-reaper.git`
+3. Open a terminal in that directory and use `git clone https://github.com/<your name>/<your fork name here>.git` but if you are not using a fork, just use `https://github.com/sharktrexer/link-reaper.git`
 4. Create a virtual environment `python3 -m venv venv` 
 5. Install requried dependencies `pip install -r requirements.txt` or if you intend to contribute, `pip install -r requirements_dev.txt`
 6. Use `python -m link_reaper.reaper reap yourfile.md` utilizing the many options [here](#Terminal) to test or play around with the project.
@@ -45,7 +47,7 @@ ruff check --fix
 # Format changes
 ruff format link-reaper
 
-#Optional for bonus points
+# Optional for bonus points
 pylint link-reaper
 ```
 If you don't use the ruff commands, the workflow of this project will fail and it will take longer to merge your potentially beautiful changes!
@@ -56,7 +58,8 @@ Here are the many ways you can utilize this python package.
 
 ## Terminal
 ```
-Usage: python -m link_reaper.reaper reap [OPTIONS] [FILES]...
+Package Usage: python -m link_reaper.reaper reap [OPTIONS] [FILES]...
+Regular Usage: link-reaper reap [OPTIONS] [FILES]...
 
   Command that reaps links from markdown files based on your options
 
@@ -81,6 +84,8 @@ Options:
                                until it times out.
   -dl, --disable_logging       Prevents creation of any log type files (does
                                not overwrite -show-afterlife)
+  -v, --verbose                Provide more information on the reaping
+                               process.
   --help                       Show this message and exit.
 ```
 
