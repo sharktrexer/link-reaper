@@ -96,7 +96,7 @@ def file_manip(kwargs):
         if do_show_afterlife and link_storage.reaped_links:
             with open(afterlife_file_path, "w", encoding="utf-8") as afterlife_file:
                 for link in link_storage.reaped_links:
-                    afterlife_file.write(str(link) + "\n")
+                    afterlife_file.write(str(link) + "\n\n")
 
         # Write log to log-filename.md if there is anything to log
         if not dont_log and link_storage.logged_links:
@@ -113,7 +113,7 @@ def file_manip(kwargs):
             click.echo(url)
 
         if not dont_log and link_storage.logged_links:
-            click.echo("Other link results in ", log_file_path, " for additional info")
+            click.echo("Other link results in " + log_file_path + " for additional info")
 
 
 def collect_links(kwargs, line: str, line_num: int, link_storage: link_info.LinkHolder):
