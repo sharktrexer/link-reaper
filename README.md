@@ -1,3 +1,8 @@
+[![image](https://img.shields.io/pypi/v/the-link-reaper.svg)](https://pypi.python.org/pypi/the-link-reaper)
+[![linting: pylint](https://img.shields.io/badge/linting-pylint-yellowgreen)](https://github.com/pylint-dev/pylint) 
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+
+
 # link-reaper
 
 Verifies AND automatically reaps links to keep your lists updated and clean of "zombies".
