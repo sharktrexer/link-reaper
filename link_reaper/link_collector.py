@@ -30,131 +30,57 @@ ALT_LINK_URL_RE = re.compile(r"\<(.*?)\>")
 MarkdownLink = namedtuple("Markdown_Link", ["name", "url"])
 
 
-def collect_links(
-    *,
-    files,
-    directory: str = "",
-    reap_codes: list = [],
-    ignored_links: list = [],
-    do_ignore_copies=False,
-    do_ignore_redirect=False,
-    do_ignore_ssl=True,
-    do_show_afterlife=False,
-    overwrite=True,
-    ignore_timeouts=False,
-    dont_log=False,
-    max_timeout=15,  # This is overriden by cli option
-    verbose=False,
-):
-    """Checks all links in markdown files and reaps them depending on options."""
-    if not directory:
-        directory = os.getcwd() + "\\"
+def file_manip(kwargs):
+    """Searches and creates files related to link reaping"""
+
+    directory = os.getcwd() + "\\"
 
     file_index = -1
-    do_verify = not do_ignore_ssl
 
-    # Loop thru all inputted files, and create a reaped copy
+    files = kwargs["files"]
+    overwrite = not kwargs["merciful"]
+    dont_log = kwargs["disable_logging"]
+    do_show_afterlife = kwargs["show_afterlife"]
+
+    # Per file
     for file in files:
         file_index += 1
 
-        # file paths
-        reap_file_path = directory + "reaped-" + file
-        afterlife_file_path = directory + "afterlife-" + file
-        log_file_path = directory + "log-" + file
-        file = directory + file
-
         link_storage = link_info.LinkHolder([], [], [])
 
-        with (
-            open(file, "r", encoding="utf-8") as cur_file,
-            open(reap_file_path, "w", encoding="utf-8") as reap_file,
-        ):
-            click.echo("Processing " + file + "...\n")
+        # file paths
+        reap_file_path = ""
+        afterlife_file_path = ""
+        log_file_path = ""
 
-            for line_num, line in enumerate(cur_file, start=1):
-                # Grabbing all md links in the file line [name](url) or <url>
-                line_links = grab_md_links(line)
+        if do_show_afterlife:
+            afterlife_file_path = directory + "afterlife-" + file
 
-                # ignore lines without possible markdown links
-                if not line_links:
-                    reap_file.write(line)
-                    continue
+        if not dont_log:
+            reap_file_path = directory + "reaped-" + file
+            log_file_path = directory + "log-" + file
 
-                for md_link in line_links:
-                    link_name = md_link[0]
-                    raw_url = md_link[1]
+        click.echo("Processing " + file + "...\n")
 
-                    # validate that the captured "link" is actually a http url
-                    if not check_url_validity(raw_url):
-                        reap_file.write(line)
-                        click.echo("Not a valid url in markdown link: " + raw_url)
-                        continue
-
-                    click.echo("Found " + raw_url)
-
-                    # ignore specified links
-                    if raw_url in ignored_links:
-                        reap_file.write(line)
-                        click.echo("Ignored as specified")
-                        continue
-
-                    cur_link = link_info.Link(line_num, link_name, raw_url, history=[])
-
-                    # Check if link has already been found in past loop iteration
-                    poss_dupe = link_storage.check_if_dupe(cur_link)
-
-                    # track found, valid links
-                    link_storage.store_link(cur_link)
-
-                    # handle duplicate links
-                    if poss_dupe:
-                        cur_link.note = (
-                            "Doppelganger of "
-                            + poss_dupe.name
-                            + ", Line "
-                            + str(poss_dupe.file_line)
-                        )
-                        cur_link.status = poss_dupe.status
-
-                        if do_ignore_copies:
-                            # Log copies just so user knows what has been ignored
-                            cur_link.result = "Logged"
-                        else:
-                            # otherwise dupes are known as undead
-                            cur_link.result = "Reaped"
-                    else:
-                        # Get requests of non dupe links
-                        obtain_request(
-                            cur_link,
-                            do_verify,
-                            ignore_timeouts,
-                            max_timeout,
-                            do_ignore_redirect,
-                            reap_codes,
-                        )
-
-                    # Handle the line based on link result
-                    if cur_link.history:
-                        # If redirect occured, update the link
-                        line = line.replace(cur_link.history[0], cur_link.url)
-
-                        # Get code of original url
-                        cur_link.status = cur_link.og_code
-                        cur_link.result = "Updated"
-
-                    if cur_link.result != "Reaped":
-                        reap_file.write(line)
-
-                    # Store links into appropriate log/reap lists
-                    link_storage.store_link(cur_link)
-
-                # End Of Line
-            # EOF
+        # Link validating
+        if dont_log:
+            # Don't make a reap file if not logging
+            with open(file, "r", encoding="utf-8") as cur_file:
+                for line_num, line in enumerate(cur_file, start=1):
+                    collect_links(kwargs, line, line_num, link_storage)
+        else:
+            # Validate with reap file creation
+            with (
+                open(file, "r", encoding="utf-8") as cur_file,
+                open(reap_file_path, "w", encoding="utf-8") as reap_file,
+            ):
+                for line_num, line in enumerate(cur_file, start=1):
+                    reap_file.write(collect_links(kwargs, line, line_num, link_storage))
 
         reap_msg = "\nReaped/Updated "
 
         # Change wording if using a "check" mode
-        if dont_log and not overwrite:
+        if dont_log and overwrite:
             reap_msg = "\nPotentially could reap/update "
 
         click.echo(
@@ -167,7 +93,7 @@ def collect_links(
         )
 
         # Write undead_links to afterlife-filename.md
-        if do_show_afterlife:
+        if do_show_afterlife and link_storage.reaped_links:
             with open(afterlife_file_path, "w", encoding="utf-8") as afterlife_file:
                 for link in link_storage.reaped_links:
                     afterlife_file.write(str(link) + "\n")
@@ -181,16 +107,99 @@ def collect_links(
         # Replace
         if overwrite:
             os.replace(reap_file_path, file)
-        # Don't keep reap file if logging is disabled
-        elif dont_log:
-            os.remove(reap_file_path)
 
-        print("\nProblematic links in: ", file)
+        click.echo("\nProblematic links in: " + file)
         for url in link_storage.reaped_links:
             click.echo(url)
 
         if not dont_log and link_storage.logged_links:
             click.echo("Other link results in ", log_file_path, " for additional info")
+
+
+def collect_links(kwargs, line: str, line_num: int, link_storage: link_info.LinkHolder):
+    """Checks all links in markdown files and reaps them depending on options."""
+
+    # Unpacking
+    reap_codes = kwargs["reap_status"]
+    ignored_links = kwargs["ignore_urls"]
+    do_ignore_copies = kwargs["ignore_doppelgangers"]
+    do_ignore_redirect = kwargs["ignore_ghosts"]
+    do_verify = not kwargs["ignore_ssl"]
+    ignore_timeouts = kwargs["ignore_timeouts"]
+    max_timeout = kwargs["patience"]
+    verbose = kwargs["verbose"]
+
+    # Grabbing all md links in the file line [name](url) or <url>
+    line_links = grab_md_links(line)
+
+    # ignore lines without possible markdown links
+    if not line_links:
+        return line
+
+    for md_link in line_links:
+        link_name = md_link[0]
+        raw_url = md_link[1]
+
+        # validate that the captured "link" is actually a http url
+        if not check_url_validity(raw_url):
+            if verbose:
+                click.echo("Not a valid url in markdown link: " + raw_url)
+            return line
+
+        click.echo("Found " + raw_url)
+
+        # ignore specified links
+        if raw_url in ignored_links:
+            click.echo("Ignored as specified")
+            return line
+
+        cur_link = link_info.Link(line_num, link_name, raw_url, history=[])
+
+        # Check if link has already been found in past loop iteration
+        poss_dupe = link_storage.check_if_dupe(cur_link)
+
+        # track found, valid links
+        link_storage.store_link(cur_link)
+
+        # handle duplicate links
+        if poss_dupe:
+            cur_link.note = (
+                "Doppelganger of "
+                + poss_dupe.name
+                + ", Line "
+                + str(poss_dupe.file_line)
+            )
+            cur_link.status = poss_dupe.status
+
+            cur_link.result = "Logged" if do_ignore_copies else "Reaped"
+
+        else:
+            # Get requests of non dupe links
+            obtain_request(
+                cur_link,
+                do_verify,
+                ignore_timeouts,
+                max_timeout,
+                do_ignore_redirect,
+                reap_codes,
+            )
+
+        # Handle the line based on link result
+        if cur_link.history:
+            # If redirect occured, update the link
+            line = line.replace(cur_link.history[0], cur_link.url)
+
+            # Get code of original url
+            cur_link.status = cur_link.og_code
+            cur_link.result = "Updated"
+
+        # Store links into appropriate log/reap lists
+        link_storage.store_link(cur_link)
+
+        if cur_link.result == "Reaped":
+            return ""
+
+        return line
 
 
 def find_markdown_link(line):

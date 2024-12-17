@@ -109,46 +109,31 @@ def link_reaper():
     is_flag=True,
     help="Prevents creation of any log type files (does not overwrite -show-afterlife)",
 )
+# VERBOSE MODE
+@click.option(
+    "-v",
+    "--verbose",
+    is_flag=True,
+    help="Provide more information on the reaping process.",
+)
 # FILE(S)
 @click.argument("files", nargs=-1, type=click.Path(exists=True))
 # REAPER
-def reap(
-    files,
-    show_afterlife,
-    merciful,
-    ignore_ghosts,
-    ignore_doppelgangers,
-    ignore_urls,
-    reap_status,
-    ignore_ssl,
-    ignore_timeouts,
-    patience,
-    disable_logging,
-):
+def reap(**kwargs):
     """Command that reaps links from markdown files based on your options"""
-    if not files:
+    if not kwargs["files"]:
         raise click.BadParameter("No file(s) provided")
 
-    if ignore_ssl:
+    if kwargs["ignore_ssl"]:
         click.echo("\nWarning: ignoring SSL errors. Use with caution.")
 
     # Transform multiple options into lists
-    ignore_urls = ignore_urls.replace(" ", "").split(",")
-    reap_status = reap_status.replace(" ", "").split(",")
+    kwargs["ignore_urls"] = kwargs["ignore_urls"].replace(" ", "").split(",")
+    kwargs["reap_status"] = kwargs["reap_status"].replace(" ", "").split(",")
 
-    link_collector.collect_links(
-        files=files,
-        overwrite=not merciful,
-        do_ignore_copies=ignore_doppelgangers,
-        do_ignore_redirect=ignore_ghosts,
-        do_show_afterlife=show_afterlife,
-        ignored_links=ignore_urls,
-        reap_codes=reap_status,
-        do_ignore_ssl=ignore_ssl,
-        ignore_timeouts=ignore_timeouts,
-        max_timeout=patience,
-        dont_log=disable_logging,
-    )
+    # print(kwargs)
+
+    link_collector.file_manip(kwargs)
 
 
 if __name__ == "__main__":

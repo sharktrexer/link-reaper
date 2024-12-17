@@ -63,12 +63,9 @@ class LinkHolder:
         """Stores link in appropriate list"""
         if link.result == "Reaped" or link.result == "Updated":
             self.reaped_links.append(link)
-            print("reaped")
         elif link.result == "Logged":
             self.logged_links.append(link)
-            print("logged")
         elif not link.result:
-            print("found")
             self.found_links.append(link)
 
     def check_if_dupe(self, link: Link):
