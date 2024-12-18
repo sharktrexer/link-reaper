@@ -2,12 +2,11 @@
 [![linting: pylint](https://img.shields.io/badge/linting-pylint-yellowgreen)](https://github.com/pylint-dev/pylint) 
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
-
 # link-reaper
 
 Verifies AND automatically reaps links to keep your lists updated and clean of "zombies".
 
-Unlike other link verifiers, this one will make direct changes to your markdown files instead of just preventing push/pull requests.
+Unlike other link verifiers, this one will make direct changes to your markdown files instead of just preventing push/pull requests (but it can do that too).
 
 # Installation
 
@@ -24,6 +23,14 @@ TBD - for directly downloading the package folder
 0. Have Python installed and the latest version of Pip
 1. Use `pip install the-link-reaper`
 2. See [here](#Terminal) for what you can do with this package.
+
+### Docker
+
+The project includes a Dockerfile you can edit and build for your images. See [here](##Examples) for an example. A downloadable premade image TBD.
+
+### Github Workflow
+
+You can install link-reaper as a python package to use in workflows. See [here](##Examples)  for an example.
 
 ## For Developers
 
@@ -96,12 +103,8 @@ Options:
 
 ## Examples
 
-TODO 
+TODO - show using it from github clone, python and pip install in terminal, github workflow, and docker
 
-## GitHub Actions
+## In Progress Features
 
-GitHub Action functionality currently in production.
-
-## Docker
-
-Docker functionality in progress.
+If you would like to see what is currently in production/what features are planned, visit [my trello page here!](https://trello.com/invite/b/6751e6dee83464d169568c4f/ATTI8034309813ff46026b4d29289c87a874D3DDC4E9/link-reaper)
