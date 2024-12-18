@@ -113,7 +113,9 @@ def file_manip(kwargs):
             click.echo(url)
 
         if not dont_log and link_storage.logged_links:
-            click.echo("Other link results in " + log_file_path + " for additional info")
+            click.echo(
+                "Other link results in " + log_file_path + " for additional info"
+            )
 
 
 def collect_links(kwargs, line: str, line_num: int, link_storage: link_info.LinkHolder):
