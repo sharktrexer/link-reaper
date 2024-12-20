@@ -18,6 +18,7 @@ from link_reaper import link_collector
 def test_markdown_link_formats(str, expected_length):
     assert len(link_collector.grab_md_links(str)) == expected_length
 
+
 @pytest.mark.parametrize(
     "url_str, expected_bool",
     [

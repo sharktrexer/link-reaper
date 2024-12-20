@@ -30,6 +30,7 @@ INTRO = """
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠿⠛⠃"""  # noqa: E501
 # pylint: enable=trailing-whitespace, line-too-long, anomalous-backslash-in-string
 
+
 # DISABLE PRINT OF INTRO
 @click.option(
     "-na", "--no_art", is_flag=True, help="Disable printed ascii art.", default=False

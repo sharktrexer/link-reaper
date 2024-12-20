@@ -9,9 +9,10 @@ from urllib.parse import urlparse, urlsplit, urlunsplit
 import requests
 import click.utils
 
-from . import link_info
 from requests.exceptions import Timeout, ConnectTimeout
 from requests.packages import urllib3
+from . import link_info
+
 
 # Disable SSL warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -36,7 +37,7 @@ def file_manip(kwargs):
     directory = os.getcwd() + "\\"
 
     exit_code = 0
-    
+
     file_index = -1
 
     files = kwargs["files"]
@@ -109,7 +110,7 @@ def file_manip(kwargs):
         # Replace
         if overwrite:
             os.replace(reap_file_path, file)
-        
+
         if link_storage.reaped_links:
             click.echo("\nProblematic links in: " + file)
             for url in link_storage.reaped_links:
@@ -121,16 +122,15 @@ def file_manip(kwargs):
             click.echo(
                 "Other link results in " + log_file_path + " for additional info"
             )
-            
+
         if not link_storage.found_links:
             click.echo("No links found in " + file)
-        
-        # "Failure" exit code if reapable links are found    
+
+        # "Failure" exit code if reapable links are found
         if link_storage.reaped_links:
             exit_code = 1
-            
-    return exit_code
 
+    return exit_code
 
 
 def collect_links(kwargs, line: str, line_num: int, link_storage: link_info.LinkHolder):
@@ -426,50 +426,3 @@ def grab_md_links(line: str) -> list:
             found_name = False
 
     return md_links
-
-
-# Figure out what to do with links and the resulting new line
-"""
-def process_link(line: str, cur_link: link_info.Link):
-    
-    if cur_link.result == "Reaped":
-        undead_links.append(cur_link)
-
-        # If only one link in line, then line can be deleted
-        if len(processed_line_links) == 1:
-            do_delete_line = True
-            continue
-
-        # If multiple links in a line, just remove the link
-        if len(processed_line_links) > 1:
-            reaped_links_num += 1
-            new_line = line.replace(cur_link.get_as_md_form(), "")
-
-            # If all links in line are reaped, then line can be deleted
-            if reaped_links_num == len(processed_line_links):
-                do_delete_line = True
-                new_line = ""
-
-        return
-
-    if cur_link.result == "Logged":
-        file_log.append(cur_link)
-        return
-
-    # If redirect occured, update the link, reap old one
-    if cur_link.history:
-        if new_line:
-            # Compound updates
-            new_line = new_line.replace(
-                cur_link.history[0], cur_link.url
-            )
-        else:
-            new_line = line.replace(
-                cur_link.history[0], cur_link.url
-            )
-
-        cur_link.status = (
-            cur_link.og_code
-        )  # Get code of original url
-        undead_links.append(cur_link)
-"""

@@ -61,7 +61,7 @@ class LinkHolder:
 
     def store_link(self, link: Link):
         """Stores link in appropriate list"""
-        if link.result == "Reaped" or link.result == "Updated":
+        if link.result in ("Reaped", "Updated"):
             self.reaped_links.append(link)
         elif link.result == "Logged":
             self.logged_links.append(link)
