@@ -1,5 +1,6 @@
 """CLI for link_reaper"""
 
+import sys
 import click
 from . import link_collector
 
@@ -29,11 +30,15 @@ INTRO = """
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠿⠛⠃"""  # noqa: E501
 # pylint: enable=trailing-whitespace, line-too-long, anomalous-backslash-in-string
 
-
+# DISABLE PRINT OF INTRO
+@click.option(
+    "-na", "--no_art", is_flag=True, help="Disable printed ascii art.", default=False
+)
 @click.group(name="link_reaper")
-def link_reaper():
+def link_reaper(no_art):
     """Groups CLI commands under 'link_reaper' and prints intro text"""
-    click.echo(INTRO)
+    if not no_art:
+        click.echo(INTRO)
 
 
 @link_reaper.command(context_settings={"ignore_unknown_options": True})
@@ -133,7 +138,10 @@ def reap(**kwargs):
 
     # print(kwargs)
 
-    link_collector.file_manip(kwargs)
+    exit_code = link_collector.file_manip(kwargs)
+
+    # Exit based on if there are reaped links
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":

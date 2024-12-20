@@ -35,6 +35,8 @@ def file_manip(kwargs):
 
     directory = os.getcwd() + "\\"
 
+    exit_code = 0
+    
     file_index = -1
 
     files = kwargs["files"]
@@ -80,7 +82,7 @@ def file_manip(kwargs):
         reap_msg = "\nReaped/Updated "
 
         # Change wording if using a "check" mode
-        if dont_log and overwrite:
+        if dont_log and not overwrite:
             reap_msg = "\nPotentially could reap/update "
 
         click.echo(
@@ -107,15 +109,28 @@ def file_manip(kwargs):
         # Replace
         if overwrite:
             os.replace(reap_file_path, file)
-
-        click.echo("\nProblematic links in: " + file)
-        for url in link_storage.reaped_links:
-            click.echo(url)
+        
+        if link_storage.reaped_links:
+            click.echo("\nProblematic links in: " + file)
+            for url in link_storage.reaped_links:
+                click.echo(url)
+        else:
+            click.echo("\nNo problems found in " + file + "!")
 
         if not dont_log and link_storage.logged_links:
             click.echo(
                 "Other link results in " + log_file_path + " for additional info"
             )
+            
+        if not link_storage.found_links:
+            click.echo("No links found in " + file)
+        
+        # "Failure" exit code if reapable links are found    
+        if link_storage.reaped_links:
+            exit_code = 1
+            
+    return exit_code
+
 
 
 def collect_links(kwargs, line: str, line_num: int, link_storage: link_info.LinkHolder):

@@ -17,3 +17,15 @@ from link_reaper import link_collector
 )
 def test_markdown_link_formats(str, expected_length):
     assert len(link_collector.grab_md_links(str)) == expected_length
+
+@pytest.mark.parametrize(
+    "url_str, expected_bool",
+    [
+        ("https://github.com/sharktrexer", True),
+        ("wrong", False),
+        ("https//invalid.com", False),
+        ("https://stackoverflow.com/", True),
+    ],
+)
+def test_valid_url(url_str, expected_bool):
+    assert link_collector.check_url_validity(url_str) == expected_bool

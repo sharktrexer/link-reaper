@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "the_link_reaper"
-version = "0.8.1"
+version = "0.8.2"
 dependencies = [
     "requests",
     "Click"
