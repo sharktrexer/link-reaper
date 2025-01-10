@@ -163,7 +163,7 @@ def collect_links(kwargs, line: str, line_num: int, link_storage: link_info.Link
                 click.echo("Not a valid url in markdown link: " + raw_url)
             return line
 
-        click.echo("Found " + raw_url)
+        click.echo(f"(Line {line_num}) " + raw_url)
 
         # ignore specified links
         if raw_url in ignored_links:
