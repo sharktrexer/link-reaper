@@ -10,19 +10,17 @@ Unlike other link verifiers, this one will make direct changes to your markdown 
 
 # Installation
 
+This project is utilized as a Python package, and requires [Python](https://www.python.org/downloads/) to be installed if utlized directly on your computer.
+
 ## For personal usage
 
-Here are a couple options for those who simply want to use the project.
-
-### As an installed Package:
-
-TBD - for directly downloading the package folder
+Here are a couple options for those who want to use the project.
 
 ### Using Pip Install:
 
 0. Have Python installed and the latest version of Pip
 1. Use `pip install the-link-reaper`
-2. See [here](#Terminal) for what you can do with this package.
+2. See [Usage](#Terminal) for what you can do with this package.
 
 ### Docker
 
@@ -30,19 +28,18 @@ The project includes a Dockerfile you can edit and build for your images. See [h
 
 ### Github Workflow
 
-You can install link-reaper as a python package to use in workflows. See [here](##Examples)  for an example.
+You can install link-reaper as a python package to use in workflows. See [here](##Examples) for an example.
 
 ## For Developers
 
 ### Instructions
-0. Have [Python](https://www.python.org/downloads/) installed.
 1. Fork this repo (if you want to contribute. If not, skip this step)
 2. Find/create your directory of choice
 3. Open a terminal in that directory and use `git clone https://github.com/<your name>/<your fork name here>.git` but if you are not using a fork, just use `https://github.com/sharktrexer/link-reaper.git`
-4. Create a virtual environment `python3 -m venv venv` 
+4. Create a virtual environment `python -m venv .venv` 
 5. Install requried dependencies `pip install -r requirements.txt` or if you intend to contribute, `pip install -r requirements_dev.txt`
-6. Use `python -m link_reaper.reaper reap yourfile.md` utilizing the many options [here](#Terminal) to test or play around with the project.
-7. If your contributing, follow the steps below
+6. Use `python link-reaper reap yourfile.md -m` utilizing the many options [here](#Terminal) to test or play around with the project. The provided example will NOT overwrite your file data.
+7. If you're contributing, follow the steps below
 
 ### Contributing
 
@@ -70,10 +67,17 @@ Here are the many ways you can utilize this python package.
 
 ## Terminal
 ```
-Package Usage: python -m link_reaper.reaper reap [OPTIONS] [FILES]...
-Regular Usage: link-reaper reap [OPTIONS] [FILES]...
+Package Usage: python -m link_reaper.reaper [OPTIONS] COMMAND [ARGS]...
+Usage: link-reaper [OPTIONS] COMMAND [ARGS]...
 
-  Command that reaps links from markdown files based on your options
+  Groups CLI commands under 'link reaper' and prints optional flavor ascii art
+
+Options:
+  -na, --no_art  Disable printed ascii art.
+  --help         Show this message and exit.
+
+Commands:
+  reap  Command that reaps links from markdown files based on your options
 
 Options:
   -s, --show_afterlife         Create an afterlife-filename.md for each
@@ -103,7 +107,72 @@ Options:
 
 ## Examples
 
-TODO - show using it from github clone, python and pip install in terminal, github workflow, and docker
+Utilizing pip, you can install this package to use not only on your direct computer for any project, but also gives the flexibility of use in containers or workflows.
+
+### General Use
+
+In your Python project, you can use `pip install the-link-reaper` for access to CLI commands. For example, if you want to automatically clean a markdown list in your project, 
+like a README.md, while understanding what exactly was changed without overwriting data, try:
+
+```
+python link-reaper reap example.md -is -m -s
+```
+
+This will keep the integrity of your document and create new files like 
+
+1. reaped-example.md | Showcases the changes the program would make to the inputted file if overwritten
+2. log-example.md | Lists any links that the program couldn't determine were reapable or not
+3. afterlife-example.md | Lists all the reaped links by themselves
+
+If you like the changes Link Reaper made, rename reaped-example.md to example.md to overwrite the original document with a cleaner link list. Feel free to delete the afterlife & log files.
+
+### GitHub Workflow
+
+Link Reaper can be used to verify pushes and pull requests using workflows, without changing any aspect of a document. See below for an example that verifies links without any extra fluff or potential to overwrite changes.
+
+```
+name: Link-Reaper
+
+on:
+  push:
+    branches: [ '*' ]
+  pull_request:
+    branches: [ '*' ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.13.1' 
+    - name: Install & run link-reaper
+      run: |
+        pip install the-link-reaper
+        link-reaper -na reap README.md -is -m -dl
+```
+
+### Dockerfile
+
+Provided in this project is an example Dockerfile that you can use to create a container that verifies a markdown list. For easy copy/paste:
+
+```
+# Dockerfile for link-reaper
+FROM python:3.13.1
+
+RUN pip install the-link-reaper
+
+# Command to run link-reaper on your file without overwriting
+# Customize as you desire
+CMD ["link-reaper", "reap", "yourfile.md", "-is", -m"]
+
+# Now you can use the following commands in your terminal to run:
+# docker build -t link-reaper .
+# docker run link-reaper
+```
 
 ## In Progress Features
 
