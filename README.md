@@ -134,11 +134,15 @@ If there are certain urls or web domains you'd rather this program ignore, utili
 
 But, lets say you want to ignore ALL github urls, then simply do:
 
-`python link-reaper reap example.md -iu github.com`
+`-iu github.com`
 
 Or, if you wanted to ignore all of a certain path from github, you could do:
 
-`python link-reaper reap example.md -iu github.com/sharktrexer`
+`-iu github.com/sharktrexer`
+
+And finally, you can mix and match:
+
+`-iu https://github.com/sharktrexer/link-reaper, google.com`
 
 ### GitHub Workflow
 
