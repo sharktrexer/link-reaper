@@ -126,6 +126,20 @@ This will keep the integrity of your document and create new files like
 
 If you like the changes Link Reaper made, rename reaped-example.md to example.md to overwrite the original document with a cleaner link list. Feel free to delete the afterlife & log files.
 
+#### Whitelisting URLs
+
+If there are certain urls or web domains you'd rather this program ignore, utilize the `--ignore_urls` option. For example, if you want to ignore a specific url, do:
+
+`python link-reaper reap example.md -iu https://github.com/sharktrexer/link-reaper`
+
+But, lets say you want to ignore ALL github urls, then simply do:
+
+`python link-reaper reap example.md -iu github.com`
+
+Or, if you wanted to ignore all of a certain path from github, you could do:
+
+`python link-reaper reap example.md -iu github.com/sharktrexer`
+
 ### GitHub Workflow
 
 Link Reaper can be used to verify pushes and pull requests using workflows, without changing any aspect of a document. See below for an example that verifies links without any extra fluff or potential to overwrite changes.
