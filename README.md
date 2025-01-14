@@ -91,8 +91,8 @@ Options:
   -is, --ignore_ssl            Disable SSL errors. Not very secure so use with
                                caution.
   -it, --ignore_timeouts       Ignore links that time out.
-  -iu, --ignore_urls TEXT      Ignores specific links you want to whitelist.
-                               Enter each url comma separated.
+  -iu, --ignore_urls TEXT      Ignores specific links or general domains you 
+                               want to whitelist. Comma separate each entry.
   -rs, --reap_status TEXT      Status codes you want to be reaped (By default
                                404, 500, 521 are reaped and 300s are updated).
                                Enter each code comma separated.

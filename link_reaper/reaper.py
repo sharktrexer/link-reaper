@@ -86,8 +86,8 @@ def link_reaper(no_art):
     type=str,
     default="",
     help=(
-        "Ignores specific links you want to whitelist."
-        " Enter each url comma separated."
+        "Ignores specific links or general domains you want to whitelist."
+        " Comma separate each entry."
     ),
 )
 # REAP LIST OF STATUS CODES

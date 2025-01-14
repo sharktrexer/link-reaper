@@ -166,8 +166,8 @@ def collect_links(kwargs, line: str, line_num: int, link_storage: link_info.Link
         click.echo(f"(Line {line_num}) " + raw_url)
 
         # ignore specified links
-        if raw_url in ignored_links:
-            click.echo("Ignored as specified")
+        if is_url_ignored(raw_url, ignored_links):
+            click.echo("\tUrl found in whitelist. Ignored.")
             return line
 
         cur_link = link_info.Link(line_num, link_name, raw_url, history=[])
@@ -386,9 +386,7 @@ def grab_md_links(line: str) -> list:
     starting_url = False
     end_capture = 0
 
-    # capture = []
-
-    # for c in line:
+    # TODO: use a list to simplify this
 
     for ind, c in enumerate(line):
         # For <url>
@@ -426,3 +424,23 @@ def grab_md_links(line: str) -> list:
             found_name = False
 
     return md_links
+
+def is_url_ignored(url: str, ignored: list):
+    """Uses urlparse to check if domain and/or domain & path is in blacklist
+    Assumes url has been validated
+    """
+    if url in ignored:
+        return True
+    
+    try:
+        parsed_url = urlparse(url)
+        
+        if parsed_url.netloc in ignored:
+            return True
+        if parsed_url.path and (parsed_url.netloc + parsed_url.path) in ignored:
+            return True
+        
+    except ValueError:
+        return False
+
+    return False
