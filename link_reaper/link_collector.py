@@ -425,21 +425,22 @@ def grab_md_links(line: str) -> list:
 
     return md_links
 
+
 def is_url_ignored(url: str, ignored: list):
     """Uses urlparse to check if domain and/or domain & path is in blacklist
     Assumes url has been validated
     """
     if url in ignored:
         return True
-    
+
     try:
         parsed_url = urlparse(url)
-        
+
         if parsed_url.netloc in ignored:
             return True
         if parsed_url.path and (parsed_url.netloc + parsed_url.path) in ignored:
             return True
-        
+
     except ValueError:
         return False
 
