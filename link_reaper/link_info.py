@@ -35,11 +35,7 @@ class Link:
                 + f"{self.note}"
             )
 
-        return (
-            f"Line {self.file_line}, Status {self.status} | "
-            f"{self.url} | "
-            f"{self.note}"
-        )
+        return f"Line {self.file_line}, Status {self.status} | {self.url} | {self.note}"
 
     def get_as_md_form(self):
         """Formats link back into markdown: [name](url)"""
