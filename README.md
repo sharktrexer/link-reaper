@@ -37,8 +37,8 @@ You can install link-reaper as a python package to use in workflows. See [here](
 2. Find/create your directory of choice
 3. Open a terminal in that directory and use `git clone https://github.com/<your name>/<your fork name here>.git` but if you are not using a fork, just use `https://github.com/sharktrexer/link-reaper.git`
 4. Create a virtual environment `python -m venv .venv` 
-5. Install requried dependencies `pip install -r requirements.txt` or if you intend to contribute, `pip install -r requirements_dev.txt`
-6. Use `python link-reaper reap yourfile.md -m` utilizing the many options [here](#Terminal) to test or play around with the project. The provided example will NOT overwrite your file data.
+5. Install requried dependencies `pip install -r requirements.txt` or if you intend to contribute, also do `pip install -r requirements_dev.txt`
+6. Use `python -m link_reaper.reaper reap yourfile.md -is -m` utilizing the many options [here](#Terminal) to test or play around with the project. The provided example will NOT overwrite your file data.
 7. If you're contributing, follow the steps below
 
 ### Contributing
