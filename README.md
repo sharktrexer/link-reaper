@@ -130,7 +130,7 @@ If you like the changes Link Reaper made, rename reaped-example.md to example.md
 
 If there are certain urls or web domains you'd rather this program ignore, utilize the `--ignore_urls` option. For example, if you want to ignore a specific url, do:
 
-`python link-reaper reap example.md -iu https://github.com/sharktrexer/link-reaper`
+`link-reaper reap example.md -iu https://github.com/sharktrexer/link-reaper`
 
 But, lets say you want to ignore ALL github urls, then simply do:
 
@@ -142,7 +142,27 @@ Or, if you wanted to ignore all of a certain path from github, you could do:
 
 And finally, you can mix and match:
 
-`-iu https://github.com/sharktrexer/link-reaper, google.com`
+`-iu https://github.com/sharktrexer/link-reaper,google.com`
+
+#### Blacklisting Status Codes
+
+There may be some status codes some of your urls return that you would like reaped. In that case, use the `--reap-status` option. Similarly to above, to ignore one or multiple specific codes, you can do:
+
+`link-reaper reap example.md -rs 401,402`
+
+However, you may want to reap a similar group of status codes. In that case, Link Reaper provides an easy shorthand way to do so, using "\*". So if you want all 400 codes to be reaped, then inputting 4* or 4** would do such, as so:
+
+`-rs 4*`
+
+This also works with only specifying a range of 10, where if you input 30*, all codes from 300-309 would be caught and reaped, like such:
+
+`-rs 30*`
+
+Mixing and matching is totally fine as well:
+
+`-rs 403,30*`
+
+And don't worry about erroneous inputs, they'll be ignored.
 
 ### GitHub Workflow
 
