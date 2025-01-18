@@ -5,7 +5,7 @@ import click
 from . import link_collector
 
 # pylint: disable=trailing-whitespace, line-too-long, anomalous-backslash-in-string
-INTRO = """ 
+INTRO = r""" 
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣤⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⠞⢿⣧⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣶⣶⡀⠀⠀⢀⡴⠛⠁⠀⠘⣿⡄⠀
@@ -135,7 +135,7 @@ def reap(**kwargs):
 
     # Transform multiple options into lists
     kwargs["ignore_urls"] = kwargs["ignore_urls"].replace(" ", "").split(",")
-    kwargs["reap_status"] = kwargs["reap_status"].replace(" ", "").split(",")
+    kwargs["reap_status"] = parse_status_codes(kwargs["reap_status"].replace(" ", "").split(","))
 
     # print(kwargs)
 
@@ -144,6 +144,31 @@ def reap(**kwargs):
     # Exit based on if there are reaped links
     sys.exit(exit_code)
 
+
+def parse_status_codes(status_codes: list) -> list:
+    """Checks for any special code formats, like 3*/3** & 30* and adds appropriate codes to reap list
+    
+    Example: 3* would add 300-399 and 34* would add 340-349
+    """
+    
+    true_codes = []
+    
+    for code in status_codes:
+        # check for "*"
+        index = code.find("*")
+        
+        if index == -1:
+            true_codes.append(code)
+        elif index > 3 or index == 0:
+            click.echo("Ignored invalid status code input: " + code)        
+        # get range of codes based on location of "*"
+        else:
+            multiplier = int(100**(1/index)) # Turn multipier into 100 for index 1 or 10 for index 2
+            num = int(code[0:index]) # Capture the number(s) before *
+            codes = range(num * multiplier, (num + 1) * multiplier) # Get the approiate range
+            true_codes.extend(codes)
+            
+    return true_codes
 
 if __name__ == "__main__":
     link_reaper()
