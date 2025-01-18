@@ -115,7 +115,7 @@ In your Python project, you can use `pip install the-link-reaper` for access to 
 like a README.md, while understanding what exactly was changed without overwriting data, try:
 
 ```
-python link-reaper reap example.md -is -m -s
+link-reaper reap example.md -is -m -s
 ```
 
 This will keep the integrity of your document and create new files like 
@@ -206,11 +206,13 @@ RUN pip install the-link-reaper
 # Command to run link-reaper on your file without overwriting
 # Customize as you desire
 CMD ["link-reaper", "reap", "yourfile.md", "-is", -m"]
-
-# Now you can use the following commands in your terminal to run:
-# docker build -t link-reaper .
-# docker run link-reaper
 ```
+
+Now you can use the following commands in your terminal to run:
+
+`docker build -t link-reaper .`
+
+`docker run link-reaper`
 
 ## In Progress Features
 
