@@ -13,6 +13,8 @@ from link_reaper import link_collector
         ("[i]http://test.com)", 0),
         ("i]http://test.com)", 0),
         ("http://test.com", 0),
+        ("[hi()](http://test.com)", 1),
+        ("[woah[]](i)", 1),
     ],
 )
 def test_markdown_link_formats(str, expected_length):
