@@ -160,10 +160,14 @@ def collect_links(kwargs, line: str, line_num: int, link_storage: link_info.Link
         # validate that the captured "link" is actually a http url
         if not check_url_validity(raw_url):
             if verbose:
-                click.echo("Not a valid url in markdown link: " + raw_url)
+                click.echo("Invalid url in markdown link: " + raw_url)
             return line
 
-        click.echo(f"(Line {line_num}) " + raw_url)
+        # Printing line num and url info based on verbose option
+        if verbose and link_name:
+            click.echo(f"(Line {line_num}) [{link_name}] {raw_url}")
+        else:
+            click.echo(f"(Line {line_num}) {raw_url}")
 
         # ignore specified links
         if is_url_ignored(raw_url, ignored_links):
@@ -339,7 +343,6 @@ def obtain_request(
             link.history.append(link.url)
             link.url = url_after_redirect
             link.note = "Updated to most current redirect"
-            # print("Updated to most current redirect")
             continue
 
         status = link.status
