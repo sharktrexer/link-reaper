@@ -299,8 +299,8 @@ def obtain_request(
             link.result = "Reaped"
             return
 
-        # Handling connection errors and connection timeouts
-        except (ConnectionError, ConnectTimeout) as e:
+        # Handling connection errors
+        except ConnectionError as e:
             link.note = str(e)
             link.result = "Reaped"
             return
