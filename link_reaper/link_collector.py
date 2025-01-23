@@ -9,7 +9,7 @@ from urllib.parse import urlparse, urlsplit, urlunsplit
 import requests
 import click.utils
 
-from requests.exceptions import Timeout, ConnectTimeout
+from requests.exceptions import Timeout
 from requests.packages import urllib3
 from . import link_info
 
@@ -137,13 +137,8 @@ def collect_links(kwargs, line: str, line_num: int, link_storage: link_info.Link
     """Checks all links in markdown files and reaps them depending on options."""
 
     # Unpacking
-    reap_codes = kwargs["reap_status"]
     ignored_links = kwargs["ignore_urls"]
     do_ignore_copies = kwargs["ignore_doppelgangers"]
-    do_ignore_redirect = kwargs["ignore_ghosts"]
-    do_verify = not kwargs["ignore_ssl"]
-    ignore_timeouts = kwargs["ignore_timeouts"]
-    max_timeout = kwargs["patience"]
     verbose = kwargs["verbose"]
 
     # Grabbing all md links in the file line [name](url) or <url>
@@ -197,12 +192,8 @@ def collect_links(kwargs, line: str, line_num: int, link_storage: link_info.Link
         else:
             # Get requests of non dupe links
             obtain_request(
-                cur_link,
-                do_verify,
-                ignore_timeouts,
-                max_timeout,
-                do_ignore_redirect,
-                reap_codes,
+                kwargs,
+                link=cur_link,
             )
 
         # Handle the line based on link result
@@ -267,14 +258,21 @@ def check_url_validity(url):
 
 
 def obtain_request(
+    kwargs,
     link: link_info.Link,
-    do_verify: bool,
-    ignore_timeouts: bool,
-    max_timeout: int,
-    do_ignore_redirect: bool,
-    reap_codes: list,
 ):
     """Tests links for responses in respect to cli options"""
+
+    # Unpacking
+    reap_codes = kwargs["reap_status"]
+    do_ignore_redirect = kwargs["ignore_ghosts"]
+    do_verify = not kwargs["ignore_ssl"]
+    ignore_timeouts = kwargs["ignore_timeouts"]
+    max_timeout = kwargs["patience"]
+    timeout_retries = kwargs["chances"]
+
+    attempts = 1
+
     # Loop for as many times are there are redirects
     while True:
         # print("checking: ", link.url)
@@ -294,6 +292,11 @@ def obtain_request(
                 link.note = "Url Timed Out: " + str(e)
                 link.result = "Logged"
                 return
+            # try again based on retry var
+            elif attempts <= timeout_retries:
+                attempts += 1
+                click.echo("Url Timed Out, trying again...")
+                continue
 
             link.note = str(e)
             link.result = "Reaped"

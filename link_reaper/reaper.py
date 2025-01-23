@@ -110,7 +110,10 @@ def link_reaper(no_art):
 )
 # TIMEOUT RETRY ATTEMPTS
 @click.option(
-    "-c", "--chances", default=1, help="Max # of connection retries before labeling a link as timed out."
+    "-c",
+    "--chances",
+    default=1,
+    help="Max # of connection retries before labeling a link as timed out.",
 )
 # STOP LOGGING INTO FILES
 @click.option(
