@@ -67,7 +67,7 @@ Here are the many ways you can utilize this python package.
 
 ## Terminal
 ```
-Package Usage: python -m link_reaper.reaper [OPTIONS] COMMAND [ARGS]...
+Clone/Fork Usage: python -m link_reaper.reaper [OPTIONS] COMMAND [ARGS]...
 Usage: link-reaper [OPTIONS] COMMAND [ARGS]...
 
   Groups CLI commands under 'link reaper' and prints optional flavor ascii art
@@ -91,18 +91,20 @@ Options:
   -is, --ignore_ssl            Disable SSL errors. Not very secure so use with
                                caution.
   -it, --ignore_timeouts       Ignore links that time out.
-  -iu, --ignore_urls TEXT      Ignores specific links or general domains you 
+  -iu, --ignore_urls TEXT      Ignores specific links or general domains you
                                want to whitelist. Comma separate each entry.
   -rs, --reap_status TEXT      Status codes you want to be reaped (By default
                                404, 500, 521 are reaped and 300s are updated).
                                Enter each code comma separated.
   -p, --patience INTEGER       Max # of seconds to wait for url to send data
                                until it times out.
+  -c, --chances INTEGER        Max # of connection retries before labeling a
+                               link as timed out.
   -dl, --disable_logging       Prevents creation of any log type files (does
                                not overwrite -show-afterlife)
   -v, --verbose                Provide more information on the reaping
                                process.
-  --help                       Show this message and exit.
+  --help                       Show the details of each option like above.
 ```
 
 ## Examples
