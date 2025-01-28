@@ -44,6 +44,8 @@ def file_manip(kwargs):
     overwrite = not kwargs["merciful"]
     dont_log = kwargs["disable_logging"]
     do_show_afterlife = kwargs["show_afterlife"]
+    use_csv = kwargs["csv_override"]
+    create_result_table = kwargs["result_table"]
 
     # Per file
     for file in files:
@@ -51,17 +53,30 @@ def file_manip(kwargs):
 
         link_storage = link_info.LinkHolder([], [], [])
 
+        # different file extensions based on csv_override
+        file_name = os.path.splitext(file)[0]
+        new_file = file_name
+        
+        if use_csv:
+            new_file = new_file + ".csv"
+        else:
+            new_file = new_file + ".txt"
+        
         # file paths
         reap_file_path = ""
         afterlife_file_path = ""
         log_file_path = ""
+        result_file_path = ""
 
         if do_show_afterlife:
-            afterlife_file_path = directory + "afterlife-" + file
+            afterlife_file_path = directory + "afterlife-" + new_file
 
         if not dont_log:
             reap_file_path = directory + "reaped-" + file
-            log_file_path = directory + "log-" + file
+            log_file_path = directory + "log-" + new_file
+            
+        if create_result_table:
+            result_file_path = directory + "results-" + file_name + ".csv"
 
         click.echo("Processing " + file + "...\n")
 
@@ -95,15 +110,19 @@ def file_manip(kwargs):
             + file
         )
 
-        # Write undead_links to afterlife-filename.md
+        field_names = ["Name", "URL", "Line Number", "Status Code", "Note", "Redirect History"]
+
+        # Write undead_links to afterlife-filename.txt
         if do_show_afterlife and link_storage.reaped_links:
-            with open(afterlife_file_path, "w", encoding="utf-8") as afterlife_file:
+            with open(afterlife_file_path, "w", encoding="utf-8", newline='') as afterlife_file:
+                
                 for link in link_storage.reaped_links:
                     afterlife_file.write(str(link) + "\n\n")
 
-        # Write log to log-filename.md if there is anything to log
+        # Write log to log-filename.txt if there is anything to log
         if not dont_log and link_storage.logged_links:
-            with open(log_file_path, "w", encoding="utf-8") as log_file:
+            with open(log_file_path, "w", encoding="utf-8", newline='') as log_file:
+                
                 for link in link_storage.logged_links:
                     log_file.write(str(link) + "\n\n")
 
