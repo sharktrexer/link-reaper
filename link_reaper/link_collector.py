@@ -2,6 +2,7 @@
 
 import re
 import os
+import csv
 
 from collections import namedtuple
 from urllib.parse import urlparse, urlsplit, urlunsplit
@@ -112,15 +113,33 @@ def file_manip(kwargs):
 
         field_names = ["Name", "URL", "Line Number", "Status Code", "Note", "Redirect History"]
 
-        # Write undead_links to afterlife-filename.txt
-        if do_show_afterlife and link_storage.reaped_links:
+        do_create_afterlife = do_show_afterlife and link_storage.reaped_links
+        
+        # Write undead links to afterlife-filename.csv
+        if use_csv and do_create_afterlife:
+            with open(afterlife_file_path, "w", encoding="utf-8", newline='') as csv_afterlife:
+                writer = csv.DictWriter(csv_afterlife, fieldnames=field_names)
+                writer.writeheader()
+                for row in link_storage.format_for_csv(link_storage.reaped_links):
+                    writer.writerow(dict(zip(field_names, row)))
+        # Write undead links to afterlife-filename.txt      
+        elif do_show_afterlife:
             with open(afterlife_file_path, "w", encoding="utf-8", newline='') as afterlife_file:
                 
                 for link in link_storage.reaped_links:
                     afterlife_file.write(str(link) + "\n\n")
 
-        # Write log to log-filename.txt if there is anything to log
-        if not dont_log and link_storage.logged_links:
+        do_create_log = not dont_log and link_storage.logged_links
+
+        # Write log to log-filename.csv if there is anything to log
+        if use_csv and do_create_log:
+            with open(log_file_path, "w", encoding="utf-8", newline='') as csv_log:
+                writer = csv.DictWriter(csv_log, fieldnames=field_names)
+                writer.writeheader()
+                for row in link_storage.format_for_csv(link_storage.logged_links):
+                    writer.writerow(dict(zip(field_names, row)))
+        # Write log to log-filename.txt     
+        elif do_create_log:
             with open(log_file_path, "w", encoding="utf-8", newline='') as log_file:
                 
                 for link in link_storage.logged_links:

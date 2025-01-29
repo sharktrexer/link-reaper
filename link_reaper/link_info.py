@@ -70,3 +70,11 @@ class LinkHolder:
             if link.url == found_link.url or link.url in found_link.history:
                 return found_link
         return None
+    
+    def format_for_csv(self, links: list):
+        """Takes a list of links, like one of its own, and returns a list of lists of formatted (index separated) Link info"""
+        csv_list =  []
+        for link in links:
+            #                 "Name",    "URL",   "Line Number", "Status Code", "Note", "Redirect History"
+            csv_list.append([link.name, link.url, link.file_line, link.status, link.note, link.history])
+        return csv_list
