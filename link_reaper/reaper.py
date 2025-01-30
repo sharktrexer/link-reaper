@@ -57,7 +57,7 @@ def link_reaper(no_art):
     is_flag=True,
     help=(
         "Instead of overwriting files, create a reaped-filename.md for each checked file "
-        "that contains applied changes. Use \'-dont_log\' to prevent the file creation."
+        "that contains applied changes. Use '-dont_log' to prevent the file creation."
     ),
 )
 # IGNORE REDIRECTION UPDATES
@@ -77,7 +77,10 @@ def link_reaper(no_art):
 )
 # IGNORE TIMEOUTS
 @click.option(
-    "-it", "--ignore_timeouts", is_flag=True, help="Ignore links that timeout, either by read or connection."
+    "-it",
+    "--ignore_timeouts",
+    is_flag=True,
+    help="Ignore links that timeout, either by read or connection.",
 )
 # IGNORE LIST OF URLS
 @click.option(
@@ -99,7 +102,7 @@ def link_reaper(no_art):
     help=(
         "Status codes you want to be reaped (By default 404, 500, 521 are reaped and 300s are updated)."
         " Enter each code comma separated."
-        " Formats such as \'3*\' and \'30*\' are also accepted to capture a range of codes."
+        " Formats such as '3*' and '30*' are also accepted to capture a range of codes."
     ),
 )
 # TIMEOUT
@@ -122,8 +125,8 @@ def link_reaper(no_art):
     "--disable_logging",
     is_flag=True,
     help=(
-        "Prevents creation of any files, like log files or the use of \'-mercifiul\'"
-        " excluding specific file creating options like \'-show-afterlife\'"
+        "Prevents creation of any files, like log files or the use of '-mercifiul'"
+        " excluding specific file creating options like '-show-afterlife'"
     ),
 )
 # VERBOSE MODE
@@ -145,7 +148,7 @@ def link_reaper(no_art):
     "-co",
     "--csv_override",
     is_flag=True,
-    help="Overrides \'-show-afterlife\' and potential log files to instead be tables of link data rather than plain text.",
+    help="Overrides '-show-afterlife' and potential log files to instead be tables of link data rather than plain text.",
 )
 # FILE(S)
 @click.argument("files", nargs=-1, type=click.Path(exists=True))
@@ -160,7 +163,7 @@ def reap(**kwargs):
 
     # Transform multiple options into lists
     kwargs["ignore_urls"] = kwargs["ignore_urls"].replace(" ", "").split(",")
-    
+
     kwargs["reap_status"] = parse_status_codes(
         kwargs["reap_status"].replace(" ", "").split(",")
     )
@@ -192,15 +195,11 @@ def parse_status_codes(status_codes: list) -> list:
         # get range of codes based on location of "*"
         else:
             # Turn multipier into 100 for index 1 or 10 for index 2
-            multiplier = int(
-                100 ** (1 / index)
-            )  
+            multiplier = int(100 ** (1 / index))
             # Capture the number(s) before *
-            num = int(code[0:index])  
+            num = int(code[0:index])
             # Get the approiate range
-            codes = range(
-                num * multiplier, (num + 1) * multiplier
-            )  
+            codes = range(num * multiplier, (num + 1) * multiplier)
             true_codes.extend(codes)
 
     return true_codes

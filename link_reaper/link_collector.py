@@ -57,12 +57,12 @@ def file_manip(kwargs):
         # different file extensions based on csv_override
         file_name = os.path.splitext(file)[0]
         new_file = file_name
-        
+
         if use_csv:
             new_file = new_file + ".csv"
         else:
             new_file = new_file + ".txt"
-        
+
         # file paths
         reap_file_path = ""
         afterlife_file_path = ""
@@ -75,7 +75,7 @@ def file_manip(kwargs):
         if not dont_log:
             reap_file_path = directory + "reaped-" + file
             log_file_path = directory + "log-" + new_file
-            
+
         if create_result_table:
             result_file_path = directory + "results-" + file_name + ".csv"
 
@@ -111,21 +111,31 @@ def file_manip(kwargs):
             + file
         )
 
-        field_names = ["Name", "URL", "Line Number", "Status Code", "Note", "Redirect History"]
+        field_names = [
+            "Name",
+            "URL",
+            "Line Number",
+            "Status Code",
+            "Note",
+            "Redirect History",
+        ]
 
         do_create_afterlife = do_show_afterlife and link_storage.reaped_links
-        
+
         # Write undead links to afterlife-filename.csv
         if use_csv and do_create_afterlife:
-            with open(afterlife_file_path, "w", encoding="utf-8", newline='') as csv_afterlife:
+            with open(
+                afterlife_file_path, "w", encoding="utf-8", newline=""
+            ) as csv_afterlife:
                 writer = csv.DictWriter(csv_afterlife, fieldnames=field_names)
                 writer.writeheader()
                 for row in link_storage.format_for_csv(link_storage.reaped_links):
                     writer.writerow(dict(zip(field_names, row)))
-        # Write undead links to afterlife-filename.txt      
+        # Write undead links to afterlife-filename.txt
         elif do_show_afterlife:
-            with open(afterlife_file_path, "w", encoding="utf-8", newline='') as afterlife_file:
-                
+            with open(
+                afterlife_file_path, "w", encoding="utf-8", newline=""
+            ) as afterlife_file:
                 for link in link_storage.reaped_links:
                     afterlife_file.write(str(link) + "\n\n")
 
@@ -133,17 +143,26 @@ def file_manip(kwargs):
 
         # Write log to log-filename.csv if there is anything to log
         if use_csv and do_create_log:
-            with open(log_file_path, "w", encoding="utf-8", newline='') as csv_log:
+            with open(log_file_path, "w", encoding="utf-8", newline="") as csv_log:
                 writer = csv.DictWriter(csv_log, fieldnames=field_names)
                 writer.writeheader()
                 for row in link_storage.format_for_csv(link_storage.logged_links):
                     writer.writerow(dict(zip(field_names, row)))
-        # Write log to log-filename.txt     
+        # Write log to log-filename.txt
         elif do_create_log:
-            with open(log_file_path, "w", encoding="utf-8", newline='') as log_file:
-                
+            with open(log_file_path, "w", encoding="utf-8", newline="") as log_file:
                 for link in link_storage.logged_links:
                     log_file.write(str(link) + "\n\n")
+
+        # Write results of all seen links to results-filename.csv
+        if create_result_table:
+            with open(
+                result_file_path, "w", encoding="utf-8", newline=""
+            ) as csv_results:
+                writer = csv.DictWriter(csv_results, fieldnames=field_names)
+                writer.writeheader()
+                for row in link_storage.format_for_csv(link_storage.found_links):
+                    writer.writerow(dict(zip(field_names, row)))
 
         # Replace
         if overwrite:

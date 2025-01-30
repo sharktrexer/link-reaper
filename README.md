@@ -80,30 +80,40 @@ Commands:
   reap  Command that reaps links from markdown files based on your options
 
 Options:
-  -s, --show_afterlife         Create an afterlife-filename.md for each
+  -s, --show_afterlife         Create an afterlife-filename.txt for each
                                checked file that only contains the reaped
                                links.
   -m, --merciful               Instead of overwriting files, create a reaped-
                                filename.md for each checked file that contains
-                               applied changes.
+                               applied changes. Use '-dont_log' to prevent the
+                               file creation.
   -ig, --ignore_ghosts         Prevents updating redirecting links.
   -id, --ignore_doppelgangers  Ignore duplicate links.
   -is, --ignore_ssl            Disable SSL errors. Not very secure so use with
                                caution.
-  -it, --ignore_timeouts       Ignore links that time out.
+  -it, --ignore_timeouts       Ignore links that timeout, either by read or
+                               connection.
   -iu, --ignore_urls TEXT      Ignores specific links or general domains you
                                want to whitelist. Comma separate each entry.
   -rs, --reap_status TEXT      Status codes you want to be reaped (By default
                                404, 500, 521 are reaped and 300s are updated).
-                               Enter each code comma separated.
-  -p, --patience INTEGER       Max # of seconds to wait for url to send data
-                               until it times out.
+                               Enter each code comma separated. Formats such
+                               as '3*' and '30*' are also accepted to capture
+                               a range of codes.
+  -p, --patience INTEGER       Max # of seconds to wait for url to connect and
+                               send data until it times out.
   -c, --chances INTEGER        Max # of connection retries before labeling a
                                link as timed out.
-  -dl, --disable_logging       Prevents creation of any log type files (does
-                               not overwrite -show-afterlife)
-  -v, --verbose                Provide more information on the reaping
+  -dl, --disable_logging       Prevents creation of any files, like log files
+                               or the use of '-mercifiul' excluding specific
+                               file creating options like '-show-afterlife'
+  -v, --verbose                Provides more information on the reaping
                                process.
+  -rt, --result_table          Creates a .csv file containing all found links
+                               and their result data.
+  -co, --csv_override          Overrides '-show-afterlife' and potential log
+                               files to instead be tables of link data rather
+                               than plain text.
   --help                       Show the details of each option like above.
 ```
 
