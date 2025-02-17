@@ -2,8 +2,14 @@
 
 import os
 
-get_directory = lambda: os.getcwd() + "\\"
 
-get_filename = lambda file: os.path.splitext(file)[0]
+def get_directory():
+    return os.getcwd() + "\\"
 
-overwrite_file = lambda src, dst: os.replace(src, dst)
+
+def get_filename(file):
+    return os.path.splitext(file)[0]
+
+
+def overwrite_file(src, dst):
+    os.replace(src, dst)
