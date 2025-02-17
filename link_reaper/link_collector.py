@@ -1,7 +1,6 @@
 """checks links in markdown files and prints results"""
 
 import re
-import os
 import csv
 
 from collections import namedtuple
@@ -13,6 +12,7 @@ import click.utils
 from requests.exceptions import Timeout
 from requests.packages import urllib3
 from . import link_info
+from . import file_manager as fm
 
 
 # Disable SSL warnings
@@ -35,7 +35,7 @@ MarkdownLink = namedtuple("Markdown_Link", ["name", "url"])
 def file_manip(kwargs):
     """Searches and creates files related to link reaping"""
 
-    directory = os.getcwd() + "\\"
+    directory = fm.get_directory()
 
     exit_code = 0
 
@@ -55,7 +55,7 @@ def file_manip(kwargs):
         link_storage = link_info.LinkHolder([], [], [])
 
         # different file extensions based on csv_override
-        file_name = os.path.splitext(file)[0]
+        file_name = fm.get_filename(file)
         new_file = file_name
 
         if use_csv:
@@ -166,7 +166,7 @@ def file_manip(kwargs):
 
         # Replace
         if overwrite:
-            os.replace(reap_file_path, file)
+            fm.overwrite_file(reap_file_path, file)
 
         if link_storage.reaped_links:
             click.echo("\nProblematic links in: " + file)
