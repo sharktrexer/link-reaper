@@ -24,11 +24,11 @@ Here are a couple options for those who want to use the project.
 
 ### Docker
 
-The project includes a Dockerfile you can edit and build for your images. See [here](##Examples) for an example. A downloadable premade image TBD.
+The project includes a Dockerfile you can edit and build for your images. See [here](#Examples) for an example. A downloadable premade image TBD.
 
 ### Github Workflow
 
-You can install link-reaper as a python package to use in workflows. See [here](##Examples) for an example.
+You can install link-reaper as a python package to use in workflows. See [here](#Examples) for an example.
 
 ## For Developers
 
